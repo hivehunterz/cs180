@@ -50,17 +50,12 @@ figcaption strong { display: block; color: var(--text); font-weight: 600; }
 .why { border-left: 2px solid var(--border); padding: 2px 0 2px 18px; }
 .why h3 { margin: 0 0 8px; font-size: 0.98rem; font-weight: 600; }
 .why p:last-child { margin-bottom: 0; }
-.todo {
-  margin-top: 48px; padding: 16px 18px; font-size: 0.9rem;
-  border: 1px dashed var(--border); color: var(--muted);
-}
-.todo code { font-size: 0.9em; }
 footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.87rem; }
 @media print {
   body { background: #fff; color: #000; font-size: 12px; }
   .wrap { padding: 12px; max-width: none; }
   section { page-break-inside: avoid; }
-  .todo, .back { display: none; }
+  .back { display: none; }
 }
 </style>
 </head>
@@ -197,12 +192,6 @@ footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--border
     </p>
   </section>
 
-  <div class="todo">
-    <strong>Delete this box before submitting.</strong>
-    Still missing from <code>images/</code>: <code>part2-zoomed.jpg</code> and
-    <code>part2-close.jpg</code>. Parts 1 and 3 are wired up. Fill in every
-    <code>TODO</code> in this file, then remove this box.
-  </div>
 
   <footer>
     CS180: Intro to Computer Vision and Computational Photography &middot; UC Berkeley

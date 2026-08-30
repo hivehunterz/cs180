@@ -6,163 +6,72 @@
 <title>Project 0: Becoming Friends with Your Camera — CS180</title>
 <style>
 :root {
-  --bg: #fbfaf8;
-  --surface: #ffffff;
-  --text: #1b1b1b;
-  --muted: #62615d;
-  --border: #e6e2db;
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --border: #e2e2e2;
   --accent: #003262;
-  --accent-soft: #eaf0f6;
-  --gold: #b5860b;
-  --radius: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14161a;
-    --surface: #1c1f24;
-    --text: #e9e7e3;
-    --muted: #9b9892;
-    --border: #2d3138;
+    --bg: #151719;
+    --text: #e8e6e3;
+    --muted: #9a9894;
+    --border: #303336;
     --accent: #7fb3e8;
-    --accent-soft: #1e2733;
-    --gold: #e0ae3c;
   }
 }
-* { box-sizing: border-box; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
-    Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 17px;
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-
-header.hero {
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  padding: 72px 0 56px;
-}
-.eyebrow {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  font-weight: 600;
-  margin: 0 0 14px;
-}
-h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.12;
-  letter-spacing: -0.022em;
-  margin: 0 0 18px;
-  font-weight: 700;
-}
-.byline { color: var(--muted); margin: 0; font-size: 1rem; }
-.byline a { color: inherit; }
-
-main { padding: 8px 0 96px; }
-section { padding: 56px 0; border-bottom: 1px solid var(--border); }
-section:last-child { border-bottom: 0; }
-h2 {
-  font-size: 1.65rem;
-  letter-spacing: -0.015em;
-  margin: 0 0 6px;
-  font-weight: 650;
-}
-.section-sub { color: var(--muted); margin: 0 0 28px; font-size: 0.97rem; }
-p { margin: 0 0 18px; }
-a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-
-.pair {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-  gap: 26px;
-  margin: 0 0 26px;
-}
-.strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 16px;
-  margin: 0 0 26px;
-}
+.wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px 80px; }
+.back { color: var(--muted); font-size: 0.9rem; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+h1 { font-size: 2rem; font-weight: 600; margin: 18px 0 4px; letter-spacing: -0.02em; }
+.sub { color: var(--muted); margin: 0 0 8px; }
+section { padding: 44px 0 0; }
+h2 { font-size: 1.25rem; font-weight: 600; margin: 0 0 6px; }
+.note { color: var(--muted); margin: 0 0 22px; font-size: 0.95rem; }
+p { margin: 0 0 16px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; margin-bottom: 22px; }
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
 figure { margin: 0; }
-figure img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--accent-soft);
-}
-figcaption { margin-top: 10px; font-size: 0.88rem; color: var(--muted); }
-figcaption strong { color: var(--text); font-weight: 600; display: block; }
-.solo { max-width: 620px; margin: 0 0 26px; }
-
-.writeup {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 22px 26px;
-}
-.writeup h3 { margin: 0 0 10px; font-size: 1rem; letter-spacing: 0.01em; }
-.writeup p:last-child { margin-bottom: 0; }
-
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); }
+figcaption { margin-top: 8px; font-size: 0.87rem; color: var(--muted); }
+figcaption strong { display: block; color: var(--text); font-weight: 600; }
+.solo { max-width: 560px; margin-bottom: 22px; }
+.why { border-left: 2px solid var(--border); padding: 2px 0 2px 18px; }
+.why h3 { margin: 0 0 8px; font-size: 0.98rem; font-weight: 600; }
+.why p:last-child { margin-bottom: 0; }
 .todo {
-  background: #fff8e5;
-  border: 1px solid #e8d9a8;
-  color: #5c4708;
-  border-radius: var(--radius);
-  padding: 18px 22px;
-  margin: 32px 0 0;
-  font-size: 0.92rem;
+  margin-top: 48px; padding: 16px 18px; font-size: 0.9rem;
+  border: 1px dashed var(--border); color: var(--muted);
 }
-.todo code {
-  background: rgba(0, 0, 0, 0.07);
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-size: 0.88em;
-}
-@media (prefers-color-scheme: dark) {
-  .todo { background: #2a2412; border-color: #4d421f; color: #e3cf95; }
-  .todo code { background: rgba(255, 255, 255, 0.1); }
-}
-
-footer {
-  border-top: 1px solid var(--border);
-  padding: 30px 0 50px;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
+.todo code { font-size: 0.9em; }
+footer { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.87rem; }
 @media print {
   body { background: #fff; color: #000; font-size: 12px; }
-  header.hero { padding: 20px 0; }
-  section { padding: 20px 0; page-break-inside: avoid; }
-  .todo { display: none; }
-  figure img { border: 1px solid #ccc; }
+  .wrap { padding: 12px; max-width: none; }
+  section { page-break-inside: avoid; }
+  .todo, .back { display: none; }
 }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<header class="hero">
-  <div class="wrap">
-    <p class="eyebrow">CS180 &middot; Project 0</p>
-    <h1>Becoming Friends with Your Camera</h1>
-    <p class="byline">Tan Ee Khai &middot; <a href="../">All projects</a></p>
-  </div>
-</header>
-
-<main class="wrap">
+  <a class="back" href="../">&larr; All projects</a>
+  <h1>Becoming Friends with Your Camera</h1>
+  <p class="sub">CS180 Project 0 &middot; Tan Ee Khai</p>
 
   <section>
     <h2>Overview</h2>
-    <p class="section-sub">Perspective, focal length, and the center of projection.</p>
     <p>
       <!-- TODO: 2-4 sentences introducing the project in your own words. -->
       Write a short intro here describing what you set out to explore and how you
@@ -173,9 +82,7 @@ footer {
   <!-- ============ PART 1 ============ -->
   <section>
     <h2>Part 1: Selfie &mdash; The Wrong Way vs. The Right Way</h2>
-    <p class="section-sub">
-      Same subject, same apparent face size, two very different centers of projection.
-    </p>
+    <p class="note">Same subject, same apparent face size, two very different centers of projection.</p>
 
     <div class="pair">
       <figure>
@@ -194,7 +101,7 @@ footer {
       </figure>
     </div>
 
-    <div class="writeup">
+    <div class="why">
       <h3>Why does this happen?</h3>
       <p>
         <!-- TODO: your explanation. Think about the ratio of distances from the
@@ -207,9 +114,7 @@ footer {
   <!-- ============ PART 2 ============ -->
   <section>
     <h2>Part 2: Architectural Perspective Compression</h2>
-    <p class="section-sub">
-      The same idea in reverse, on a building facade shot at an angle.
-    </p>
+    <p class="note">The same idea in reverse, on a building facade shot at an angle.</p>
 
     <div class="pair">
       <figure>
@@ -228,7 +133,7 @@ footer {
       </figure>
     </div>
 
-    <div class="writeup">
+    <div class="why">
       <h3>Why does the zoomed shot look flattened?</h3>
       <p>
         <!-- TODO: your explanation. Compare how much the near and far edges of the
@@ -240,7 +145,7 @@ footer {
   <!-- ============ PART 3 ============ -->
   <section>
     <h2>Part 3: The Dolly Zoom</h2>
-    <p class="section-sub">
+    <p class="note">
       Moving the camera back while zooming in &mdash; the subject holds its size
       while the background rushes toward or away from it.
     </p>
@@ -253,7 +158,7 @@ footer {
       </figcaption>
     </figure>
 
-    <p>The individual frames:</p>
+    <p class="note">The individual frames:</p>
     <div class="strip">
       <figure>
         <img src="images/dolly1.png" alt="Dolly zoom frame 1">
@@ -277,7 +182,7 @@ footer {
       </figure>
     </div>
 
-    <div class="writeup">
+    <div class="why">
       <h3>How I made it</h3>
       <p>
         <!-- TODO: how you shot and assembled the GIF. -->
@@ -294,22 +199,16 @@ footer {
   </section>
 
   <div class="todo">
-    <strong>Before you submit &mdash; delete this box.</strong>
-    <p style="margin:10px 0 0">
-      Still missing from <code>proj0/images/</code>:
-      <code>part2-zoomed.jpg</code> and <code>part2-close.jpg</code>
-      (Part 2 building shots). Parts 1 and 3 are wired up.
-      Then fill in every <code>TODO</code> in this file and remove this box.
-    </p>
+    <strong>Delete this box before submitting.</strong>
+    Still missing from <code>images/</code>: <code>part2-zoomed.jpg</code> and
+    <code>part2-close.jpg</code>. Parts 1 and 3 are wired up. Fill in every
+    <code>TODO</code> in this file, then remove this box.
   </div>
 
-</main>
-
-<footer>
-  <div class="wrap">
+  <footer>
     CS180: Intro to Computer Vision and Computational Photography &middot; UC Berkeley
-  </div>
-</footer>
+  </footer>
 
+</div>
 </body>
 </html>

@@ -6,133 +6,52 @@
 <title>Tan Ee Khai — CS180</title>
 <style>
 :root {
-  --bg: #fbfaf8;
-  --surface: #ffffff;
-  --text: #1b1b1b;
-  --muted: #62615d;
-  --border: #e6e2db;
+  --bg: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --border: #e2e2e2;
   --accent: #003262;
-  --gold: #b5860b;
-  --radius: 10px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14161a;
-    --surface: #1c1f24;
-    --text: #e9e7e3;
-    --muted: #9b9892;
-    --border: #2d3138;
+    --bg: #151719;
+    --text: #e8e6e3;
+    --muted: #9a9894;
+    --border: #303336;
     --accent: #7fb3e8;
-    --gold: #e0ae3c;
   }
 }
-* { box-sizing: border-box; }
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
-    Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 17px;
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-
-header.hero {
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  padding: 72px 0 56px;
-}
-.eyebrow {
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  font-weight: 600;
-  margin: 0 0 14px;
-}
-h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.12;
-  letter-spacing: -0.022em;
-  margin: 0 0 18px;
-  font-weight: 700;
-}
-.byline { color: var(--muted); margin: 0; font-size: 1rem; }
-
-main { padding: 8px 0 96px; }
-section { padding: 56px 0; }
-h2 {
-  font-size: 1.65rem;
-  letter-spacing: -0.015em;
-  margin: 0 0 6px;
-  font-weight: 650;
-}
-.section-sub { color: var(--muted); margin: 0 0 28px; font-size: 0.97rem; }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  margin-top: 8px;
-}
-.card {
-  display: block;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 26px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-.card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.card h3 { margin: 0 0 6px; font-size: 1.12rem; }
-.card p { margin: 0; color: var(--muted); font-size: 0.93rem; }
-
-footer {
-  border-top: 1px solid var(--border);
-  padding: 30px 0 50px;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-@media print {
-  body { background: #fff; color: #000; font-size: 12px; }
-  header.hero { padding: 20px 0; }
-  section { padding: 20px 0; }
-}
+.wrap { max-width: 780px; margin: 0 auto; padding: 64px 24px 80px; }
+h1 { font-size: 2rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+.sub { color: var(--muted); margin: 0 0 48px; }
+h2 { font-size: 1.1rem; font-weight: 600; margin: 0 0 16px; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { padding: 14px 0; border-top: 1px solid var(--border); }
+li:last-child { border-bottom: 1px solid var(--border); }
+a { color: var(--accent); text-underline-offset: 2px; }
+li span { display: block; color: var(--muted); font-size: 0.92rem; }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <h1>Tan Ee Khai</h1>
+  <p class="sub">CS180: Intro to Computer Vision and Computational Photography</p>
 
-<header class="hero">
-  <div class="wrap">
-    <p class="eyebrow">UC Berkeley &middot; CS180</p>
-    <h1>Tan Ee Khai</h1>
-    <p class="byline">Intro to Computer Vision and Computational Photography</p>
-  </div>
-</header>
-
-<main class="wrap">
-  <section>
-    <h2>Projects</h2>
-    <p class="section-sub">Coursework for CS180.</p>
-    <div class="cards">
-      <a class="card" href="proj0/">
-        <h3>Project 0</h3>
-        <p>Becoming Friends with Your Camera &mdash; perspective, focal length, and the dolly zoom.</p>
-      </a>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap">
-    CS180: Intro to Computer Vision and Computational Photography &middot; UC Berkeley
-  </div>
-</footer>
-
+  <h2>Projects</h2>
+  <ul>
+    <li>
+      <a href="proj0/">Project 0 — Becoming Friends with Your Camera</a>
+      <span>Perspective, focal length, and the dolly zoom.</span>
+    </li>
+  </ul>
+</div>
 </body>
 </html>

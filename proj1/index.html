@@ -6,200 +6,134 @@
 <title>Project 1 — Colorizing the Prokudin-Gorskii Collection</title>
 <style>
 :root {
-  --bg: #ffffff; --text: #1a1a1a; --muted: #6b6b6b; --border: #e2e2e2; --accent: #003262; --code: #f4f4f4;
+  --bg: #ffffff; --text: #1a1a1a; --muted: #6b6b6b; --border: #e6e6e6; --accent: #003262; --code: #f4f4f4; --card: #fafafa;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #151719; --text: #e8e6e3; --muted: #9a9894; --border: #303336; --accent: #7fb3e8; --code: #202326; }
+  :root { --bg: #131416; --text: #e8e6e3; --muted: #9a9894; --border: #2a2d31; --accent: #7fb3e8; --code: #1e2124; --card: #191b1e; }
 }
+* { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 17px; line-height: 1.6; }
-.wrap { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; }
-h1 { font-size: 2rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
-h2 { font-size: 1.35rem; font-weight: 600; margin: 56px 0 12px; padding-top: 16px; border-top: 1px solid var(--border); }
-h3 { font-size: 1.05rem; font-weight: 600; margin: 28px 0 8px; }
-.sub { color: var(--muted); margin: 0 0 32px; }
+  font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 56px 28px 96px; }
+h1 { font-size: 2.1rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 1.25rem; font-weight: 600; margin: 64px 0 6px; letter-spacing: -0.01em; }
+h3 { font-size: 1rem; font-weight: 600; margin: 36px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 40px; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 720px; }
 a { color: var(--accent); text-underline-offset: 2px; }
-p { margin: 0 0 14px; }
-code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
-pre { background: var(--code); padding: 14px 16px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; line-height: 1.45; }
-table { border-collapse: collapse; width: 100%; font-size: 0.92rem; margin: 12px 0 20px; }
-th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-th { color: var(--muted); font-weight: 600; }
-.tablewrap { overflow-x: auto; }
-.grid { display: grid; gap: 18px; margin: 16px 0 24px; }
-.g2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.g3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+p { margin: 0 0 12px; max-width: 760px; }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+pre { background: var(--code); padding: 12px 14px; border-radius: 6px; overflow-x: auto; font-size: 0.82em; line-height: 1.45; max-width: 760px; }
+.grid { display: grid; gap: 22px 18px; margin: 18px 0 8px; }
+.g2 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
 figure { margin: 0; }
-figure img { width: 100%; height: auto; display: block; border-radius: 4px; border: 1px solid var(--border); }
-figcaption { color: var(--muted); font-size: 0.86rem; margin-top: 6px; line-height: 1.4; }
-.note { border-left: 3px solid var(--accent); padding: 6px 14px; color: var(--muted); margin: 14px 0; }
-ul { padding-left: 22px; } li { margin-bottom: 4px; }
+figure img { width: 100%; height: auto; display: block; border-radius: 6px; background: var(--card);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.06); transition: transform .18s ease, box-shadow .18s ease; }
+figure img:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(0,0,0,.1), 0 10px 26px rgba(0,0,0,.12); }
+figcaption { margin-top: 8px; font-size: 0.84rem; line-height: 1.35; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+figcaption .name { font-weight: 600; }
+figcaption .off { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+figcaption .off b { color: var(--text); font-weight: 600; }
+figcaption.single { display: block; color: var(--muted); }
+.fail .off, .fail .name { color: #b3261e; }
+@media (prefers-color-scheme: dark) { .fail .off, .fail .name { color: #f28b82; } }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 8px; }
+@media (max-width: 640px) { .pair { grid-template-columns: 1fr; } }
+.legend { color: var(--muted); font-size: 0.84rem; margin: 6px 0 0; max-width: 760px; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 56px 0 0; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <p><a href="../">← Back to projects</a></p>
-  <h1>Project 1 — Images of the Russian Empire</h1>
-  <p class="sub">Colorizing the Prokudin-Gorskii photo collection · CS180, Fall 2026 · Tan Ee Khai</p>
+  <h1>Images of the Russian Empire</h1>
+  <p class="sub">Project 1 · Colorizing the Prokudin-Gorskii photo collection · CS180, Fall 2026 · Tan Ee Khai</p>
 
-  <h2 id="overview">The setup</h2>
-  <p>Around 1907, Sergei Prokudin-Gorskii got permission from the Tsar to travel across Russia taking colour photographs, decades before colour film existed. Each scene was exposed three times onto one glass plate, once through a blue filter, once through green, once through red. The plates were never printed in colour in his lifetime, but they survived and were scanned by the Library of Congress, which is where this project starts.</p>
-  <p>Each scan is one tall greyscale image with the three exposures stacked on top of each other: blue on top, then green, then red. The scan is cut into its three channels, green and red are slid until they sit exactly on top of blue, and the three are stacked into an RGB picture. The catch is that the exposures were taken a few seconds apart and the plate moved a little in between, so the channels don't line up out of the box. A shift that is wrong by even a couple of pixels leaves colour fringes everywhere.</p>
-  <p>Everything is written from scratch in NumPy. The only library calls are for reading and writing images, plus <code>np.roll</code> for shifting. The blur, the pyramid, both metrics, the gradient features and the border detection are all implemented by hand.</p>
+  <p class="lead">Prokudin-Gorskii photographed each scene three times through blue, green and red filters onto one glass plate. Each Library of Congress scan stacks those exposures top to bottom (B, G, R). The scan is cut into three channels, green and red are shifted until they sit on top of blue, and the result is stacked into an RGB image. Every offset below is (dx, dy) in pixels: the channel was moved dx right and dy down. Everything is written from scratch in NumPy except image I/O and <code>np.roll</code>.</p>
 
-  <h2 id="approach">How alignment works</h2>
-
-  <h3>Step 1: cut the plate into channels</h3>
-  <p>The scan is read, converted to floats in [0, 1] (divided by 255 for the 8-bit JPGs and by 65535 for the 16-bit TIFs), and its height is divided by three. The top third is blue, the middle is green, the bottom is red. Blue is kept fixed as the reference, and green and red are aligned to it separately.</p>
-
-  <h3>Step 2: scoring a shift</h3>
-  <p>A single number is needed that says how similar a shifted channel looks to blue. The shift itself is done with <code>np.roll</code>, which moves the channel dx columns right and dy rows down and wraps whatever falls off the edge back around to the other side. Two scoring options were implemented:</p>
-  <ul>
-    <li><strong>L2 / SSD.</strong> Subtract the two images pixel by pixel, square everything, add it up: <code>np.sum((a - b)**2)</code>. Zero means identical, so lower is better. It's fast, but it has a weakness: if one channel is just uniformly darker than the other, which happens because the filters don't let through equal amounts of light, every single pixel counts as error even when the edges line up perfectly.</li>
-    <li><strong>NCC.</strong> Normalised cross-correlation is a dot product between the whole shifted channel and the whole blue channel, treating each as one long vector. Before the dot product, each image's mean is subtracted and the result is divided by its L2 norm, which is the "normalised" part. The score lands between &minus;1 and 1, higher is better, and 1 means the two channels have exactly the same pattern. Because the mean and the norm have been factored out, NCC compares the <em>pattern</em> of variation rather than the absolute values, so it doesn't care if one filter let through more light than another.</li>
-  </ul>
-  <p>Two practical things turned out to matter a lot. First, <strong>only the middle of the image is scored</strong>, the inner 80 % of each channel (10 % cropped from every side), because the picture doesn't fill the file all the way to the edge. The borders are full of black strips, torn emulsion and scanner white, and those are so high-contrast that when they were left in, the search aligned the borders instead of the picture. Second, since <code>np.roll</code> wraps, the first few rows and columns after a shift are junk from the opposite edge. Cropping the interior takes care of that too, as long as the shift is smaller than the margin.</p>
-
-  <h3>Step 3: single-scale search (the brute-force version)</h3>
-  <p>With a scoring function in hand, the naive version is short. Every (dx, dy) in a [−15, 15] window in both directions is tried: the moving channel is rolled by that amount, scored against blue, and the best is kept. That's 961 candidates, and on the small JPGs it runs in well under a second per channel.</p>
-<pre>def align_single_scale(moving, ref, center=(0, 0), radius=15, metric='ncc'):
-    ref_c = crop_interior(ref)
-    best, best_score = center, None
-    for dy in range(cy - radius, cy + radius + 1):
-        for dx in range(cx - radius, cx + radius + 1):
-            s = score(crop_interior(shift(moving, dx, dy)), ref_c)
-            if best_score is None or is_better(s, best_score):
-                best, best_score = (dx, dy), s
-    return best</pre>
-  <p>The function takes a <code>center</code> and a <code>radius</code> rather than always searching around zero. That small design choice is what lets it be reused inside the pyramid later.</p>
-  <p>A quick note on the (dx, dy) convention, because it is easy to get backwards. dx is the shift in columns (positive means right), dy is the shift in rows (positive means down). NumPy indexes arrays as (row, column), so the one place the order flips is inside the <code>shift</code> helper, which calls <code>np.roll(im, (dy, dx), axis=(0, 1))</code>. Everywhere an offset is printed, it's (dx, dy).</p>
-
-  <h3>Step 4: the image pyramid (the fast version)</h3>
-  <p>Brute force stops working on the full-size TIFs. They are about 3200 × 3700 pixels per channel, roughly ten times the size of the JPGs, so the offsets are roughly ten times larger too and a [−15, 15] window is nowhere near enough. Widening it to [−200, 200] would mean 160 000 candidates, each one touching 12 million pixels, which works out to hours per image. Something smarter is needed. (The offsets that were eventually found bear this out: the largest, on melons, was 178 pixels.)</p>
-  <p>The idea is to <strong>solve the problem on a tiny version of the image first, then refine</strong>. If the image is shrunk by half, the offset shrinks by half too. Shrunk four times, an offset of 160 pixels becomes 10 pixels, which brute force handles easily. Then the pyramid is walked back up: at each bigger level the estimate from below is doubled and only a tiny window around it (+-2 pixels, chosen by me) is searched to fix the rounding. This is the Gaussian pyramid from lecture (Burt and Adelson, 1983): recursively filter the image, <em>then</em> subsample, until the minimum resolution is reached. Because the image gets re-filtered at every level, the filter itself stays constant and small.</p>
-  <p><strong>Shrinking properly.</strong> Simply deleting every other row and column is undersampling. The fine detail doesn't disappear cleanly, it <em>aliases</em>: it shows up in disguise as jagged, noisy patterns that were never in the original, and two independently aliased images won't match each other. The fix from lecture is to remove the high frequencies with a lowpass filter before sampling. The lowpass filter used here is the binomial kernel [1 4 6 4 1] / 16, which approximates a Gaussian with &sigma; = 1 pixel. It is applied along the rows and then along the columns, written as five shifted NumPy slices rather than a library convolution, and only then is every other pixel kept. At the image border the filter window falls off the edge, so the image is reflect-padded first, which avoids inventing a dark or wrapped-around border that the alignment might latch onto.</p>
-  <p><strong>The recursion.</strong> The whole pyramid is the single-scale function plus five lines:</p>
+  <h2>Method</h2>
+  <p>A candidate shift is applied with <code>np.roll</code> and scored against blue on the inner 80 % of the frame only, since the plate borders are scratched, black or white, and do not move with the scene. Two metrics were implemented: L2, the sum of squared pixel differences (lower is better), and NCC, a dot product between the two channels after subtracting each one's mean and dividing by its norm (higher is better, maximum 1). NCC is used throughout because it ignores the brightness difference between filters, which L2 counts as error at every pixel. Single-scale search tries every shift in a [−15, 15] window, 961 candidates, and keeps the best score.</p>
+  <p>Full-size TIFs are about ten times larger, so their offsets are too, and a window wide enough to cover them would mean over a hundred thousand candidates on a 12-megapixel image. The pyramid avoids this by working coarse-to-fine: each level is produced by blurring the previous one with the binomial kernel [1 4 6 4 1]/16 and then keeping every other pixel, where the blur removes the high frequencies first so that the subsampling does not alias, and this recursion continues until the short side is about 200 px, which for a 3200 px channel means five levels and leaves an image on which a +-20 search is cheap. Walking back up, the estimate from the level below is doubled and refined within a +-2 window at each stage, so that only 25 candidates are ever evaluated on the full-size image, and with the window sizes chosen as described each TIF aligns in 11–14 s including the time to load the 70 MB file.</p>
 <pre>def align_pyramid(moving, ref, min_size=300, coarse_radius=20, fine_radius=2):
-    if min(moving.shape) <= min_size:                       # base case, ~200 px image
+    if min(moving.shape) <= min_size:
         return align_single_scale(moving, ref, (0, 0), coarse_radius)
-    dx, dy = align_pyramid(downsample(moving), downsample(ref))   # solve at half size
-    return align_single_scale(moving, ref, (2*dx, 2*dy), fine_radius)  # refine here</pre>
-  <p>Reading it from the base case up: if the image is small, it is brute-forced with a wide window. Otherwise both images are downsampled, the function recurses, whatever comes back is doubled, and a +-2 search is done around that at the current size. For a 3200-pixel channel that's five levels: 3209 → 1605 → 803 → 402 → 201. The +-20 search at the 201-pixel level covers +-320 pixels at full resolution, and the four +-2 refinements are 25 candidates each. Only the last 25 ever touch the full image. Each TIF takes 11–14 seconds, a good chunk of which is just loading the 70 MB file, comfortably inside the one-minute target.</p>
-  <div class="note">My original intention was to use a 100 pixel base level for the coarse brute-force search, but a 100 pixel image does not seem to have enough structure to be reliable, and with a wrong coarse estimate the +-2 pixel refinement cannot fix it. Stopping at about 200 pixels and widening the coarse window to +-20 fixed every image except Emir.</div>
+    dx, dy = align_pyramid(downsample(moving), downsample(ref))
+    return align_single_scale(moving, ref, (2*dx, 2*dy), fine_radius)</pre>
+  <p class="legend">My original intention was to use a 100 px base level for the coarse search, but an image that small does not seem to have enough structure for the coarse estimate to be reliable, and once that estimate is wrong the +-2 refinement at the finer levels has no way to recover, so the base was raised to about 200 px and the coarse window widened to +-20, which fixed every image except Emir.</p>
 
-  <h2 id="single">Single-scale results (the small JPGs)</h2>
-  <p>Both metrics landed on exactly the same offsets for all three images, a good sign the search was working. Offsets are (dx, dy): the channel was moved dx pixels right and dy pixels down to sit on blue.</p>
-  <div class="tablewrap"><table>
-    <tr><th>Image</th><th>Green (dx, dy)</th><th>Red (dx, dy)</th><th>Metric</th><th>Time</th></tr>
-    <tr><td>cathedral.jpg</td><td>(2, 5)</td><td>(3, 12)</td><td>NCC = SSD</td><td>0.3 s</td></tr>
-    <tr><td>monastery.jpg</td><td>(2, −3)</td><td>(2, 3)</td><td>NCC = SSD</td><td>0.4 s</td></tr>
-    <tr><td>tobolsk.jpg</td><td>(3, 3)</td><td>(3, 6)</td><td>NCC = SSD</td><td>0.5 s</td></tr>
-  </table></div>
+  <h2>Single-scale</h2>
+  <p class="lead">On the three low-resolution JPGs the exhaustive single-scale search is fast enough to run directly, and since NCC and L2 return exactly the same displacement for every channel of every image, only the NCC results are shown here.</p>
   <div class="grid g3">
-    <figure><img src="images/cathedral_single_ncc_pixel.jpg" alt="cathedral"><figcaption>cathedral — G (2, 5), R (3, 12)</figcaption></figure>
-    <figure><img src="images/monastery_single_ncc_pixel.jpg" alt="monastery"><figcaption>monastery — G (2, −3), R (2, 3)</figcaption></figure>
-    <figure><img src="images/tobolsk_single_ncc_pixel.jpg" alt="tobolsk"><figcaption>tobolsk — G (3, 3), R (3, 6)</figcaption></figure>
+    <figure><img src="images/cathedral_single_ncc_pixel.jpg" alt="cathedral"><figcaption><span class="name">cathedral</span><span class="off">G <b>(2, 5)</b> · R <b>(3, 12)</b></span></figcaption></figure>
+    <figure><img src="images/monastery_single_ncc_pixel.jpg" alt="monastery"><figcaption><span class="name">monastery</span><span class="off">G <b>(2, −3)</b> · R <b>(2, 3)</b></span></figcaption></figure>
+    <figure><img src="images/tobolsk_single_ncc_pixel.jpg" alt="tobolsk"><figcaption><span class="name">tobolsk</span><span class="off">G <b>(3, 3)</b> · R <b>(3, 6)</b></span></figcaption></figure>
   </div>
 
-  <h2 id="pyramid">Pyramid results on all 14 images (NCC on raw pixels)</h2>
-  <p>The pyramid reproduces the single-scale answers on the JPGs exactly, a nice sanity check, and it gets 13 of the 14 images right with no visible fringing. The one that fails is Emir, for a reason explained below. Times include reading the file.</p>
-  <div class="tablewrap"><table>
-    <tr><th>Image</th><th>Green (dx, dy)</th><th>Red (dx, dy)</th><th>Time</th><th>Result</th></tr>
-    <tr><td>cathedral.jpg</td><td>(2, 5)</td><td>(3, 12)</td><td>1.0 s</td><td>aligned</td></tr>
-    <tr><td>monastery.jpg</td><td>(2, −3)</td><td>(2, 3)</td><td>0.9 s</td><td>aligned</td></tr>
-    <tr><td>tobolsk.jpg</td><td>(3, 3)</td><td>(3, 6)</td><td>0.7 s</td><td>aligned</td></tr>
-    <tr><td>church.tif</td><td>(4, 25)</td><td>(−4, 58)</td><td>12.7 s</td><td>aligned</td></tr>
-    <tr><td>emir.tif</td><td>(24, 49)</td><td>(−205, 141)</td><td>14.7 s</td><td><strong>red channel failed</strong></td></tr>
-    <tr><td>harvesters.tif</td><td>(17, 60)</td><td>(13, 124)</td><td>13.3 s</td><td>aligned</td></tr>
-    <tr><td>icon.tif</td><td>(17, 41)</td><td>(23, 89)</td><td>14.2 s</td><td>aligned</td></tr>
-    <tr><td>ilemselga.tif</td><td>(7, 40)</td><td>(11, 130)</td><td>12.1 s</td><td>aligned</td></tr>
-    <tr><td>melons.tif</td><td>(11, 82)</td><td>(13, 178)</td><td>12.4 s</td><td>aligned</td></tr>
-    <tr><td>religous_painting.tif</td><td>(3, 28)</td><td>(7, 68)</td><td>11.0 s</td><td>aligned</td></tr>
-    <tr><td>self_portrait.tif</td><td>(29, 79)</td><td>(37, 176)</td><td>11.1 s</td><td>aligned</td></tr>
-    <tr><td>siren.tif</td><td>(−6, 49)</td><td>(−25, 96)</td><td>12.1 s</td><td>aligned</td></tr>
-    <tr><td>three_generations.tif</td><td>(14, 53)</td><td>(11, 112)</td><td>11.3 s</td><td>aligned</td></tr>
-    <tr><td>wharf.tif</td><td>(−7, 15)</td><td>(−16, 83)</td><td>13.0 s</td><td>aligned</td></tr>
-  </table></div>
+  <h2>Pyramid</h2>
+  <p class="lead">Running the pyramid with NCC on raw pixel values over all 14 provided images aligns 13 of them with no visible fringing, the one exception being Emir, whose green channel lands correctly but whose red channel ends up far from where it should be.</p>
+  <p class="lead">The failure can be traced to the robe, which is such a saturated blue that the blue filter passes almost all of its light and renders it nearly white in the blue exposure, while the red filter blocks that same light and renders it nearly black in the red exposure. The robe covers a large part of the frame, and over that whole region the two channels are anti-correlated: wherever blue is bright, red is dark. NCC can cancel a constant brightness offset and a contrast difference, but it cannot flip the sign of a region, so at the true alignment the robe contributes a large negative term and the true alignment scores badly. The search settles on (−205, 141) instead, where wrapped-around border content happens to correlate better than the picture. Green, whose robe brightness is in between, aligns correctly at (24, 49).</p>
+  <div class="grid g4">
+    <figure><img src="images/cathedral_pyramid_ncc_pixel.jpg" alt="cathedral"><figcaption><span class="name">cathedral</span><span class="off">G <b>(2, 5)</b> · R <b>(3, 12)</b></span></figcaption></figure>
+    <figure><img src="images/monastery_pyramid_ncc_pixel.jpg" alt="monastery"><figcaption><span class="name">monastery</span><span class="off">G <b>(2, −3)</b> · R <b>(2, 3)</b></span></figcaption></figure>
+    <figure><img src="images/tobolsk_pyramid_ncc_pixel.jpg" alt="tobolsk"><figcaption><span class="name">tobolsk</span><span class="off">G <b>(3, 3)</b> · R <b>(3, 6)</b></span></figcaption></figure>
+    <figure><img src="images/church_pyramid_ncc_pixel.jpg" alt="church"><figcaption><span class="name">church</span><span class="off">G <b>(4, 25)</b> · R <b>(−4, 58)</b></span></figcaption></figure>
+    <figure class="fail"><img src="images/emir_pyramid_ncc_pixel.jpg" alt="emir (failed)"><figcaption><span class="name">emir</span><span class="off">G <b>(24, 49)</b> · R <b>(−205, 141)</b></span></figcaption></figure>
+    <figure><img src="images/harvesters_pyramid_ncc_pixel.jpg" alt="harvesters"><figcaption><span class="name">harvesters</span><span class="off">G <b>(17, 60)</b> · R <b>(13, 124)</b></span></figcaption></figure>
+    <figure><img src="images/icon_pyramid_ncc_pixel.jpg" alt="icon"><figcaption><span class="name">icon</span><span class="off">G <b>(17, 41)</b> · R <b>(23, 89)</b></span></figcaption></figure>
+    <figure><img src="images/ilemselga_pyramid_ncc_pixel.jpg" alt="ilemselga"><figcaption><span class="name">ilemselga</span><span class="off">G <b>(7, 40)</b> · R <b>(11, 130)</b></span></figcaption></figure>
+    <figure><img src="images/melons_pyramid_ncc_pixel.jpg" alt="melons"><figcaption><span class="name">melons</span><span class="off">G <b>(11, 82)</b> · R <b>(13, 178)</b></span></figcaption></figure>
+    <figure><img src="images/religous_painting_pyramid_ncc_pixel.jpg" alt="religious painting"><figcaption><span class="name">religous_painting</span><span class="off">G <b>(3, 28)</b> · R <b>(7, 68)</b></span></figcaption></figure>
+    <figure><img src="images/self_portrait_pyramid_ncc_pixel.jpg" alt="self portrait"><figcaption><span class="name">self_portrait</span><span class="off">G <b>(29, 79)</b> · R <b>(37, 176)</b></span></figcaption></figure>
+    <figure><img src="images/siren_pyramid_ncc_pixel.jpg" alt="siren"><figcaption><span class="name">siren</span><span class="off">G <b>(−6, 49)</b> · R <b>(−25, 96)</b></span></figcaption></figure>
+    <figure><img src="images/three_generations_pyramid_ncc_pixel.jpg" alt="three generations"><figcaption><span class="name">three_generations</span><span class="off">G <b>(14, 53)</b> · R <b>(11, 112)</b></span></figcaption></figure>
+    <figure><img src="images/wharf_pyramid_ncc_pixel.jpg" alt="wharf"><figcaption><span class="name">wharf</span><span class="off">G <b>(−7, 15)</b> · R <b>(−16, 83)</b></span></figcaption></figure>
+  </div>
+
+  <h2>Additional plates</h2>
+  <p class="lead">To check that the parameters had not simply been tuned to the provided set, three further full-resolution scans were downloaded from the Library of Congress collection and run through the identical pipeline with the identical settings, and all three aligned on raw pixels without any adjustment.</p>
   <div class="grid g3">
-    <figure><img src="images/church_pyramid_ncc_pixel.jpg" alt="church"><figcaption>church — G (4, 25), R (−4, 58)</figcaption></figure>
-    <figure><img src="images/emir_pyramid_ncc_pixel.jpg" alt="emir (failed)"><figcaption>emir — G (24, 49), R (−205, 141). Red channel misaligned.</figcaption></figure>
-    <figure><img src="images/harvesters_pyramid_ncc_pixel.jpg" alt="harvesters"><figcaption>harvesters — G (17, 60), R (13, 124)</figcaption></figure>
-    <figure><img src="images/icon_pyramid_ncc_pixel.jpg" alt="icon"><figcaption>icon — G (17, 41), R (23, 89)</figcaption></figure>
-    <figure><img src="images/ilemselga_pyramid_ncc_pixel.jpg" alt="ilemselga"><figcaption>ilemselga — G (7, 40), R (11, 130)</figcaption></figure>
-    <figure><img src="images/melons_pyramid_ncc_pixel.jpg" alt="melons"><figcaption>melons — G (11, 82), R (13, 178)</figcaption></figure>
-    <figure><img src="images/religous_painting_pyramid_ncc_pixel.jpg" alt="religious painting"><figcaption>religous_painting — G (3, 28), R (7, 68)</figcaption></figure>
-    <figure><img src="images/self_portrait_pyramid_ncc_pixel.jpg" alt="self portrait"><figcaption>self_portrait — G (29, 79), R (37, 176)</figcaption></figure>
-    <figure><img src="images/siren_pyramid_ncc_pixel.jpg" alt="siren"><figcaption>siren — G (−6, 49), R (−25, 96)</figcaption></figure>
-    <figure><img src="images/three_generations_pyramid_ncc_pixel.jpg" alt="three generations"><figcaption>three_generations — G (14, 53), R (11, 112)</figcaption></figure>
-    <figure><img src="images/wharf_pyramid_ncc_pixel.jpg" alt="wharf"><figcaption>wharf — G (−7, 15), R (−16, 83)</figcaption></figure>
-    <figure><img src="images/cathedral_pyramid_ncc_pixel.jpg" alt="cathedral"><figcaption>cathedral (pyramid) — G (2, 5), R (3, 12)</figcaption></figure>
-    <figure><img src="images/monastery_pyramid_ncc_pixel.jpg" alt="monastery"><figcaption>monastery (pyramid) — G (2, −3), R (2, 3)</figcaption></figure>
-    <figure><img src="images/tobolsk_pyramid_ncc_pixel.jpg" alt="tobolsk"><figcaption>tobolsk (pyramid) — G (3, 3), R (3, 6)</figcaption></figure>
+    <figure><img src="images/loc_00194_pyramid_ncc_pixel.jpg" alt="woman on balcony"><figcaption><span class="name">prok 00194</span><span class="off">G <b>(21, 38)</b> · R <b>(35, 76)</b></span></figcaption></figure>
+    <figure><img src="images/loc_00458_pyramid_ncc_pixel.jpg" alt="locomotive"><figcaption><span class="name">prok 00458</span><span class="off">G <b>(6, 43)</b> · R <b>(32, 87)</b></span></figcaption></figure>
+    <figure><img src="images/loc_00600_pyramid_ncc_pixel.jpg" alt="fir tree"><figcaption><span class="name">prok 00600</span><span class="off">G <b>(36, 59)</b> · R <b>(59, 133)</b></span></figcaption></figure>
   </div>
 
-  <h3>Why Emir fails</h3>
-  <p>The Emir's robe is a saturated blue, and the failure makes sense once each filter's effect on it is considered. The blue filter lets blue light through, so in the blue exposure the robe is almost white. The red filter blocks blue light, so in the red exposure the robe is almost black. The robe takes up a big chunk of the frame, and across that whole region the two channels are <em>anti</em>-correlated: where one is bright, the other is dark.</p>
-  <p>NCC can undo a constant brightness offset and a contrast difference, but it can't flip the sign of a region. At the true alignment the robe contributes a big negative term, so the true alignment scores badly, and the search wanders off to (−205, 141), where some wrapped-around border content happens to correlate better than the actual picture does. Green, whose robe brightness is somewhere in between, aligns fine.</p>
+  <hr>
+  <h2>Bells &amp; whistles</h2>
 
-  <h2 id="extra">Additional plates from the Library of Congress</h2>
-  <p>To check that nothing had been tuned to the provided images, three more full-resolution scans were downloaded from the Library of Congress collection and run through the exact same pipeline with the exact same parameters. All three aligned cleanly on raw pixels.</p>
-  <div class="tablewrap"><table>
-    <tr><th>LoC id</th><th>Subject</th><th>Green (dx, dy)</th><th>Red (dx, dy)</th><th>Time</th></tr>
-    <tr><td>prok 00194</td><td>Woman on a balcony</td><td>(21, 38)</td><td>(35, 76)</td><td>12.6 s</td></tr>
-    <tr><td>prok 00458</td><td>Steam locomotive</td><td>(6, 43)</td><td>(32, 87)</td><td>12.5 s</td></tr>
-    <tr><td>prok 00600</td><td>Fir tree and hillside</td><td>(36, 59)</td><td>(59, 133)</td><td>11.3 s</td></tr>
-  </table></div>
-  <div class="grid g2">
-    <figure><img src="images/loc_00194_pyramid_ncc_pixel.jpg" alt="woman on balcony"><figcaption>prok 00194 — G (21, 38), R (35, 76)</figcaption></figure>
-    <figure><img src="images/loc_00458_pyramid_ncc_pixel.jpg" alt="locomotive"><figcaption>prok 00458 — G (6, 43), R (32, 87)</figcaption></figure>
-    <figure><img src="images/loc_00600_pyramid_ncc_pixel.jpg" alt="fir tree"><figcaption>prok 00600 — G (36, 59), R (59, 133)</figcaption></figure>
+  <h3>Gradient features</h3>
+  <p class="lead">Edges sit in the same place in every channel regardless of how bright that channel is, so matching edge strength sidesteps the anti-correlation that broke Emir. Partial derivatives are taken with the central-difference kernel [−1 0 1]/2 from lecture, and the gradient magnitude <code>sqrt(gx² + gy²)</code>, large on edges and near zero on flat regions, is fed into the same NCC pyramid unchanged. With this change Emir's red channel snaps to (40, 107), and on eleven of the fourteen images the gradient offsets match the raw-pixel ones to within a pixel, but on religous_painting and three_generations they land 2–3 px away and leave a faint fringe, most likely because gradient magnitude discards the sign of each edge and the fine repetitive texture in those two images flattens the correlation peak enough for the search to slide, which is why raw pixels remain the default and gradients are kept as the fallback for cases like Emir.</p>
+  <div class="pair">
+    <figure><img src="images/emir_pixel_vs_gradient.jpg" alt="emir before and after"><figcaption class="single">Emir's belt at full resolution. Left: raw pixels, R (−205, 141). Right: gradient magnitude, R (40, 107).</figcaption></figure>
+    <figure><img src="images/emir_pyramid_ncc_gradient.jpg" alt="emir aligned"><figcaption><span class="name">emir, gradient</span><span class="off">G <b>(24, 49)</b> · R <b>(40, 107)</b></span></figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="images/religous_painting_pixel_vs_gradient.jpg" alt="religious painting comparison"><figcaption class="single">religous_painting. Left: raw pixels R (7, 68), clean. Right: gradient R (6, 70), faint fringe on the lattice.</figcaption></figure>
+    <figure><img src="images/three_generations_pixel_vs_gradient.jpg" alt="three generations comparison"><figcaption class="single">three_generations. Left: raw pixels R (11, 112). Right: gradient R (9, 111). Both still show a slight fringe on the cap brim, marginally stronger on the gradient result.</figcaption></figure>
+  </div>
+  <p class="legend"><strong>Caveat.</strong> Gradient features do not resolve every image. They fix Emir because Emir's problem was the metric being misled by brightness, but on both religous_painting and three_generations the plain translation matched on raw brightness actually ends up with a smaller fringe than the gradient-based edge matching does, even though the two answers differ by only two or three pixels, and on three_generations neither result is entirely free of fringing. This could be due to a slight rotation of the plate between exposures, the subject moving in the seconds between shots, or other causes I have not identified, but whatever the reason it is not something a different choice of matching feature can correct, since both features are still searching only over translations; a richer transformation, such as also searching over small rotations and scales, would be needed.</p>
+
+  <h3>Auto-crop, contrast, white balance</h3>
+  <p class="lead">The border is detected rather than fixed: rows and columns wrapped by <code>np.roll</code> are dropped, then lines that are mostly near-black, near-white, or where the channels disagree are trimmed from each side (at most 12 %). Intensities are stretched so the 0.5th and 99.5th percentiles map to 0 and 1. Gray-world white balance, following the <a href="https://en.wikipedia.org/wiki/Color_balance">Wikipedia article on colour balance</a> and section 2.3.2 of <a href="https://szeliski.org/Book/">Szeliski</a>, scales each channel so its mean equals the mean of all three.</p>
+  <div class="pair">
+    <figure><img src="images/emir_pyramid_ncc_gradient.jpg" alt="emir before"><figcaption class="single">emir, aligned</figcaption></figure>
+    <figure><img src="images/emir_pyramid_ncc_gradient_post.jpg" alt="emir after"><figcaption class="single">emir, cropped + contrast + white balance</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="images/harvesters_pyramid_ncc_gradient.jpg" alt="harvesters before"><figcaption class="single">harvesters, aligned</figcaption></figure>
+    <figure><img src="images/harvesters_pyramid_ncc_gradient_post.jpg" alt="harvesters after"><figcaption class="single">harvesters, cropped + contrast + white balance</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="images/self_portrait_pyramid_ncc_gradient.jpg" alt="self portrait before"><figcaption class="single">self_portrait, aligned</figcaption></figure>
+    <figure><img src="images/self_portrait_pyramid_ncc_gradient_post.jpg" alt="self portrait after"><figcaption class="single">self_portrait, cropped + contrast + white balance</figcaption></figure>
+  </div>
+  <div class="pair">
+    <figure><img src="images/loc_00600_pyramid_ncc_gradient.jpg" alt="fir tree before"><figcaption class="single">prok 00600, aligned</figcaption></figure>
+    <figure><img src="images/loc_00600_pyramid_ncc_gradient_post.jpg" alt="fir tree after"><figcaption class="single">prok 00600, cropped + contrast + white balance</figcaption></figure>
   </div>
 
-  <h2 id="bells">Bells &amp; whistles</h2>
-
-  <h3>Better features: match edges, not brightness</h3>
-  <p>The Emir failure points at what to fix. Raw brightness is unreliable across channels, but <em>where the brightness changes</em> is not: the outline of the robe, the embroidery, the folds are in the same place in every channel no matter how bright the robe is in that channel. So instead of matching pixel values, edge strength is matched.</p>
-  <p>The image is treated as a function f(x, y) and partial derivatives are taken with the central-difference kernel [&minus;1 0 1] / 2 from lecture. That approximates &part;f/&part;x as (f(x+1, y) &minus; f(x&minus;1, y)) / 2, and the same kernel turned on its side gives &part;f/&part;y. In code it's just <code>gx = (I[:, 2:] &minus; I[:, :&minus;2]) / 2</code> and likewise for gy. The gradient magnitude <code>sqrt(gx² + gy²)</code> is then a map of how fast the image is changing at each pixel, big on edges and near zero on flat regions, no matter which filter the plate was shot through. Derivatives amplify noise, but every coarse level of the pyramid has already been through the Gaussian blur, so only the final full-resolution +-2 refinement ever sees an unsmoothed derivative. The magnitude maps are fed into the same NCC pyramid, completely unchanged, and Emir's red channel snaps to (40, 107).</p>
-  <div class="grid g2">
-    <figure><img src="images/emir_pixel_vs_gradient.jpg" alt="emir before and after"><figcaption>Full-resolution crop of the Emir's belt. Left: raw-pixel NCC, R (−205, 141). Right: gradient-magnitude NCC, R (40, 107).</figcaption></figure>
-    <figure><img src="images/emir_pyramid_ncc_gradient.jpg" alt="emir aligned"><figcaption>emir with gradient features — G (24, 49), R (40, 107)</figcaption></figure>
-  </div>
-  <p>Using gradients for every image was also tried. On eleven of the fourteen images the gradient offsets match the raw-pixel ones to within a pixel, but on <em>religous_painting</em> and <em>three_generations</em> they land 2–3 pixels off and leave a faint fringe that the raw-pixel result doesn't have. The most likely explanation: gradient magnitude throws away the sign of the edge, and on images full of fine repetitive texture (the cracked canvas of the painting, the wood grain of the pole) lots of edges look alike, so the correlation peak gets flat and the search can slide a couple of pixels. Blurring before taking the gradient didn't help. Keeping the signed gx and gy was also tried, which fixed the painting, but the quick implementation laid them side by side so the shift wrapped gx into gy and Emir broke again, and it doubled the runtime, so it was dropped. The final configuration is raw pixels by default, with gradient magnitude as the fallback for images like Emir. Both sets of offsets are reported.</p>
-  <div class="tablewrap"><table>
-    <tr><th>Image</th><th>Pixel G</th><th>Pixel R</th><th>Gradient G</th><th>Gradient R</th></tr>
-    <tr><td>emir</td><td>(24, 49)</td><td>(−205, 141) ✗</td><td>(24, 49)</td><td>(40, 107) ✓</td></tr>
-    <tr><td>religous_painting</td><td>(3, 28)</td><td>(7, 68)</td><td>(6, 30)</td><td>(6, 70)</td></tr>
-    <tr><td>three_generations</td><td>(14, 53)</td><td>(11, 112)</td><td>(12, 54)</td><td>(9, 111)</td></tr>
-    <tr><td>all other 11</td><td colspan="4">within +-1 px of each other</td></tr>
-  </table></div>
-  <div class="grid g2">
-    <figure><img src="images/religous_painting_pixel_vs_gradient.jpg" alt="religious painting comparison"><figcaption>religous_painting, full-res crop. Left: raw pixels (clean). Right: gradient magnitude (2–3 px magenta/green fringe on the lattice).</figcaption></figure>
-    <figure><img src="images/three_generations_pixel_vs_gradient.jpg" alt="three generations comparison"><figcaption>three_generations. Left: raw pixels. Right: gradient magnitude (slight green fringe on the cap brim).</figcaption></figure>
-  </div>
-
-  <h3>Automatic cropping</h3>
-  <p>The aligned images all have an ugly rainbow frame around the edge. Cutting a fixed margin off would be cheating, so instead the border is detected on the aligned RGB image using two cues. First, the rows and columns that <code>np.roll</code> wrapped around (the first |dx| columns and |dy| rows of the largest shift) are known junk, so those are removed immediately. Second, every remaining row and column is checked for whether more than half of it is near-black or near-white on some channel, or whether the three channels disagree by more than 0.3 on average. Real content agrees across channels; the plate edge is black in one and white in another. The scan walks inward from each side while a line looks like border, stops at the first good line, and never removes more than 12 % of the image so a genuinely dark scene survives.</p>
-
-  <h3>Automatic contrast and white balance</h3>
-  <p>Two finishing touches are applied. First, contrast stretching. The raw plates have a low-contrast histogram bunched up in the middle of the range, so intensities are remapped linearly so that the 0.5th percentile goes to 0 and the 99.5th to 1, which spreads the histogram out to fill the whole [0, 1] range. The percentiles are computed over all three channels together so hue doesn't shift. Second, gray-world white balance, following the approach described in the <a href="https://en.wikipedia.org/wiki/Color_balance">Wikipedia article on colour balance</a> and in section 2.3.2 of <a href="https://szeliski.org/Book/">Szeliski, <em>Computer Vision: Algorithms and Applications</em></a>: assume the average colour of the scene should be grey, and scale each channel so its mean equals the mean of all three. It's a crude illuminant estimate, but it removes most of the yellow-green cast the raw plates have.</p>
-  <div class="grid g2">
-    <figure><img src="images/emir_pyramid_ncc_gradient.jpg" alt="emir before"><figcaption>emir — aligned only</figcaption></figure>
-    <figure><img src="images/emir_pyramid_ncc_gradient_post.jpg" alt="emir after"><figcaption>emir — auto-crop, contrast stretch, gray-world</figcaption></figure>
-    <figure><img src="images/harvesters_pyramid_ncc_gradient.jpg" alt="harvesters before"><figcaption>harvesters — aligned only</figcaption></figure>
-    <figure><img src="images/harvesters_pyramid_ncc_gradient_post.jpg" alt="harvesters after"><figcaption>harvesters — auto-crop, contrast stretch, gray-world</figcaption></figure>
-    <figure><img src="images/self_portrait_pyramid_ncc_gradient.jpg" alt="self portrait before"><figcaption>self_portrait — aligned only</figcaption></figure>
-    <figure><img src="images/self_portrait_pyramid_ncc_gradient_post.jpg" alt="self portrait after"><figcaption>self_portrait — auto-crop, contrast stretch, gray-world</figcaption></figure>
-    <figure><img src="images/loc_00600_pyramid_ncc_gradient.jpg" alt="fir tree before"><figcaption>prok 00600 — aligned only</figcaption></figure>
-    <figure><img src="images/loc_00600_pyramid_ncc_gradient_post.jpg" alt="fir tree after"><figcaption>prok 00600 — auto-crop, contrast stretch, gray-world</figcaption></figure>
-  </div>
-
-  <h2 id="code">Code</h2>
-  <p>All the code is in one file, <code>colorize.py</code>, with a small command-line interface:</p>
-<pre>python colorize.py "data/*.jpg" --method single --metric ncc          # single-scale on the JPGs
-python colorize.py "data/*.tif" --method pyramid --metric ncc         # pyramid, raw pixels
-python colorize.py "data/emir.tif" --feature gradient --post          # gradient features + crop/contrast/WB</pre>
-  <p>Each run prints the (dx, dy) displacement for green and red plus the time taken, saves the colour image as a JPG, and dumps all the offsets to a JSON file.</p>
 </div>
 </body>
 </html>

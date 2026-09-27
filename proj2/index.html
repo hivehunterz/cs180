@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 2 — Fun with Filters and Frequencies</title>
+<style>
+:root {
+  --bg: #ffffff; --text: #1a1a1a; --muted: #6b6b6b; --border: #e6e6e6; --accent: #003262; --code: #f4f4f4; --card: #fafafa;
+  --todo-bg: #fff8e6; --todo-border: #e0b44a; --todo-text: #6b4e00;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #131416; --text: #e8e6e3; --muted: #9a9894; --border: #2a2d31; --accent: #7fb3e8; --code: #1e2124; --card: #191b1e;
+          --todo-bg: #2a2412; --todo-border: #8a6d25; --todo-text: #e8cf8a; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 56px 28px 96px; }
+h1 { font-size: 2.1rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 1.35rem; font-weight: 600; margin: 72px 0 6px; letter-spacing: -0.01em; }
+h3 { font-size: 1.05rem; font-weight: 600; margin: 36px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 40px; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 760px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+p { margin: 0 0 12px; max-width: 760px; }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+pre { background: var(--code); padding: 12px 14px; border-radius: 6px; overflow-x: auto; font-size: 0.82em; line-height: 1.45; max-width: 820px; }
+figure { margin: 18px 0 8px; }
+figure img { width: 100%; height: auto; display: block; border-radius: 6px; background: var(--card);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.06); }
+figure.narrow img { max-width: 560px; }
+figure.mid img { max-width: 820px; }
+figcaption { margin-top: 8px; font-size: 0.84rem; line-height: 1.4; color: var(--muted); max-width: 820px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 8px; }
+@media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+.todo { border: 1.5px dashed var(--todo-border); background: var(--todo-bg); color: var(--todo-text);
+  border-radius: 6px; padding: 12px 16px; margin: 14px 0 18px; max-width: 820px; font-size: 0.92rem; }
+.todo strong { display: block; margin-bottom: 4px; }
+.todo ul { margin: 4px 0 0; padding-left: 20px; }
+.todo li { margin-bottom: 3px; }
+.missing { border-left: 3px solid var(--todo-border); padding: 6px 14px; color: var(--muted); margin: 14px 0; max-width: 820px; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 64px 0 0; }
+nav.toc { font-size: 0.9rem; color: var(--muted); margin: 0 0 8px; }
+nav.toc a { margin-right: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p><a href="../">← Back to projects</a></p>
+  <h1>Fun with Filters and Frequencies</h1>
+  <p class="sub">Project 2 · CS180, Fall 2026 · Tan Ee Khai</p>
+  <nav class="toc">
+    <a href="#p11">1.1</a><a href="#p12">1.2</a><a href="#p13">1.3</a>
+    <a href="#p21">2.1</a><a href="#p22">2.2</a><a href="#learned">Learned</a>
+  </nav>
+
+  <p class="lead">Assignment 2 tests on basic convolution with filters in Part 1, using frequency-based applications in Part 2 using a mix of Gaussian Blur filters and impulse filters.</p>
+
+  <!-- ===================================================== PART 1 -->
+  <hr>
+  <h2 id="p11">Part 1.1: Convolutions from Scratch</h2>
+
+  <p>2D convolution is implemented with four for loops, then two for loops, and output is same size as the input ("same"). The filter is flipped before sliding for convolution rather than cross-correlation. For a filter of height <code>kh</code> and width <code>kw</code>, the image is padded with <code>kh // 2</code> rows of zeros on the top and bottom and <code>kw // 2</code> columns on the left and right.</p>
+
+  <h3>Four for loops</h3>
+  <p>Loops 1 and 2 choose which output pixel (i, j) is being computed. Loops 3 and 4 walk over every position (u, v) of the filter, multiply the padded pixel under it by the flipped filter value, and add to a running total. Because the image was padded by <code>kh // 2</code> and <code>kw // 2</code>, the window that starts at padded (i, j) is centred on original pixel (i, j).</p>
+
+  <h3>Two for loops</h3>
+  <p>The inner two loops were just an elementwise multiply of a <code>kh × kw</code> patch by the flipped filter, followed by a sum. NumPy can do that in one line, so only the two loops over output pixels remain. Same answer, much faster.</p>
+
+  <p>Both versions agree with <code>scipy.signal.convolve2d</code> with insignificant differences (likely due to rounding errors).</p>
+
+  <h3>Runtime</h3>
+  <p>The same 9×9 box filter was timed with each version. Four loops were too slow for the full photo, so all three were first compared on a 300×300 crop.</p>
+  <table style="border-collapse:collapse;font-size:0.92rem;margin:8px 0 16px">
+    <tr><th style="text-align:left;padding:4px 14px 4px 0;border-bottom:1px solid var(--border)">image</th><th style="text-align:right;padding:4px 14px;border-bottom:1px solid var(--border)">four loops</th><th style="text-align:right;padding:4px 14px;border-bottom:1px solid var(--border)">two loops</th><th style="text-align:right;padding:4px 14px;border-bottom:1px solid var(--border)">scipy</th></tr>
+    <tr><td style="padding:4px 14px 4px 0">300×300 crop</td><td style="text-align:right;padding:4px 14px">6.99 s</td><td style="text-align:right;padding:4px 14px">1.04 s</td><td style="text-align:right;padding:4px 14px">0.007 s</td></tr>
+    <tr><td style="padding:4px 14px 4px 0">1920×2560 photo</td><td style="text-align:right;padding:4px 14px">not run</td><td style="text-align:right;padding:4px 14px">51 s</td><td style="text-align:right;padding:4px 14px">0.84 s</td></tr>
+  </table>
+  <p>All three do the same calculation, so the speed difference comes from how much work Python does. Four loops do every multiplication one at a time in Python, which is slowest. Two loops let NumPy do each pixel's multiplications at once, so it is several times faster, but it still loops over every pixel in Python. Scipy does the whole convolution in compiled code with no Python loop, so it is the fastest by far.</p>
+
+  <h3>Boundaries</h3>
+  <p>Only <code>'same'</code> mode is implemented: the image is zero-padded by <code>kh // 2</code> rows and <code>kw // 2</code> columns, so the output matches the input size (<code>'valid'</code> would return a smaller output, <code>'full'</code> a larger one). Zero padding treats everything outside the image as black, so pixels within four pixels of the edge (half the 9×9 filter) are darkened slightly in the box-filtered result. Scipy's <code>boundary='fill'</code> does the same, which is why the outputs match; <code>'symm'</code> mirrors the image at the edge and avoids the frame, while <code>'wrap'</code> borrows pixels from the opposite side.</p>
+
+  <figure>
+    <img src="images/part1_results.jpg" alt="Photo convolved with box filter, Dx and Dy">
+    <figcaption>Grayscale photo, 9×9 box filter, D<sub>x</sub> = [1, −1], D<sub>y</sub> = [1, −1]<sup>T</sup>.</figcaption>
+  </figure>
+  <p>The photo is converted to grayscale with the luminance weights 0.299 R + 0.587 G + 0.114 B from Tutorial 1, since the eye is most sensitive to green and least to blue. The derivative outputs are signed and centred on zero, so they are shown with a symmetric grey colour map: mid-grey is zero, white is positive and black is negative. D<sub>x</sub> responds to vertical edges and D<sub>y</sub> to horizontal ones.</p>
+
+  <h2 id="p12">Part 1.2: Finite Difference Operator</h2>
+  <p>The cameraman image is convolved with the finite difference operators to get the partial derivatives in x and y. These are combined into a gradient magnitude image, and a threshold then binarises it into an edge map.</p>
+  <figure>
+    <img src="images/part1_2_partials.jpg" alt="Cameraman partial derivatives">
+    <figcaption>Cameraman and its partial derivatives in x and y.</figcaption>
+  </figure>
+  <figure class="mid">
+    <img src="images/part1_2_gradmag.jpg" alt="Gradient magnitude">
+    <figcaption>Gradient magnitude, √((∂f/∂x)² + (∂f/∂y)²).</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part1_2_threshold_sweep.jpg" alt="Threshold sweep">
+    <figcaption>Binarised gradient magnitude at six thresholds.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part1_2_edges.jpg" alt="Final edge map">
+    <figcaption>Final edge image at threshold 0.20.</figcaption>
+  </figure>
+  <p>At 0.05 and 0.10 the lawn is covered in speckle, since film grain in the grass produces gradients as large as some real edges. At 0.15 most of that is gone but patches of speckle survive along the bottom of the frame. By 0.25 the noise has cleared, but the distant buildings on the horizon have thinned to almost nothing and the tripod legs are starting to break up, and at 0.35 they are dashed. <strong>0.20</strong> is the compromise: the grass is nearly empty while the coat outline, the tripod, the camera body and the horizon line all survive as continuous edges.</p>
+
+  <h2 id="p13">Part 1.3: Derivative of Gaussian (DoG) Filter</h2>
+  <p>The edge map from Part 1.2 was noisy. The fix is to smooth with a Gaussian before differentiating. This is done two ways and checked for agreement: blur the image with a Gaussian and then convolve with D<sub>x</sub> and D<sub>y</sub>, or convolve the Gaussian with D<sub>x</sub> and D<sub>y</sub> first to get two derivative-of-Gaussian filters and apply those to the original image in a single pass.</p>
+  <figure class="mid">
+    <img src="images/part1_3_gaussian.jpg" alt="Gaussian kernel">
+    <figcaption>1D Gaussian (σ = 2, 13 taps) and the 2D kernel from its outer product with itself.</figcaption>
+  </figure>
+  <p>A 2D Gaussian is separable, so it is built as the outer product of a 1D Gaussian with its own transpose. The 1D Gaussian comes from <code>cv2.getGaussianKernel</code>, with weights that sum to 1 so the image's overall brightness is unchanged. Here σ = 2 and the kernel is 13×13, about 6σ + 1, which is wide enough to contain the bell curve before it decays to nothing.</p>
+  <figure>
+    <img src="images/part1_3_blurred_partials.jpg" alt="Blurred image and its partials">
+    <figcaption>Blurred cameraman, then D<sub>x</sub> and D<sub>y</sub>.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part1_3_threshold_sweep.jpg" alt="Threshold sweep, blurred">
+    <figcaption>Binarised blurred gradient magnitude at six thresholds. 0.06 is used below.</figcaption>
+  </figure>
+  <p>Blurring lowers the gradient magnitudes across the board, since a step spread over several pixels has a smaller per-pixel difference, so the threshold has to come down with it. At 0.02 the contours are fat and the lawn texture is still coming through. By 0.10 the coat outline has started to break up. <strong>0.06</strong> is used: the grass is essentially empty, and the coat, tripod, camera and horizon line all survive as continuous curves.</p>
+  <p>The thin frame visible at the lower thresholds is not an artefact of the method. The provided <code>cameraman.png</code> is 542×540 with a pure-white margin around the classic 512×512 photograph, and that margin is a genuine step edge.</p>
+  <figure class="mid">
+    <img src="images/part1_3_comparison.jpg" alt="Comparison with Part 1.2">
+    <figcaption>Top: gradient magnitude without and with blur. Bottom: binarised edge images.</figcaption>
+  </figure>
+  <h3>Comparison with the finite difference result</h3>
+  <p><strong>The contours are continuous instead of broken.</strong> In Part 1.2 the coat outline and the tripod legs are dotted and dashed, and the lawn is scattered with isolated specks. After blurring, those same contours read as unbroken curves and the lawn is almost empty. Noise shows up as lone pixels with nothing beside them, whereas a real edge is a long curve on which neighbouring pixels also respond, so averaging each pixel with its neighbours weakens the former and reinforces the latter.</p>
+  <p><strong>The edges are thicker and softer.</strong> A Gaussian spreads a sharp step over several pixels, so the derivative peak is wider and lower and the lines look fuzzier. Fine detail is smoothed away with the noise: the texture on the camera body and the far buildings on the horizon are much less distinct than in Part 1.2. The blur is a scale-selection dial, not only a noise filter.</p>
+  <p><strong>The whole image is dimmer.</strong> The blurred gradient magnitude is visibly darker everywhere, because spreading a step across several pixels makes each individual difference smaller. That is why the Part 1.2 threshold of 0.20 is useless here and a much lower one, 0.06, is needed to get a comparable edge map.</p>
+  <figure class="mid">
+    <img src="images/part1_3_dog_filters.jpg" alt="DoG filters">
+    <figcaption>The Gaussian and the two derivative-of-Gaussian filters, G * D<sub>x</sub> and G * D<sub>y</sub>.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part1_3_verify.jpg" alt="Verification">
+    <figcaption>Blur-then-differentiate against a single DoG convolution. The difference panel is drawn on the same scale; the maximum difference is 9.3e-16.</figcaption>
+  </figure>
+  <p>Convolution is associative, so blurring and then differentiating is the same as convolving with a filter that has already been differentiated: (f * G) * D<sub>x</sub> = f * (G * D<sub>x</sub>). That means G * D<sub>x</sub> and G * D<sub>y</sub> can be precomputed once and applied to the image in a single pass.</p>
+  <p>Each DoG filter is a bell curve with one positive lobe and one negative lobe, split along the axis it differentiates. Applied to a flat region the two lobes cancel and the response is zero; across an edge they do not cancel, and the output is large. Unlike the bare [1, −1], the difference is taken between weighted averages of many pixels rather than two single ones, which is why it is less sensitive to a lone noisy pixel.</p>
+
+  <!-- ===================================================== PART 2 -->
+  <hr>
+  <h2 id="p21">Part 2.1: Image "Sharpening"</h2>
+  <p>A Gaussian blur is a <strong>low-pass filter</strong>: it keeps the slow, smooth parts of an image and throws away the fast, fine parts. So if the blurred version holds only the low frequencies, then original − blurred is the high frequencies, which is the fine detail: edges, texture, small features. An image looks sharper when its high frequencies are stronger, so the trick is to add some of that detail back on top of the original:</p>
+<pre>sharpened = original + alpha * (original - blurred)</pre>
+  <p><code>alpha</code> is a tunable parameter to control how much extra detail to add. This is called unsharp masking.</p>
+  <figure>
+    <img src="images/part2_1_steps.jpg" alt="Taj original, blurred, detail">
+    <figcaption>Taj Mahal: original, blurred (low frequencies), and detail = original − blurred (high frequencies, shifted to mid-grey for display).</figcaption>
+  </figure>
+  <p>Flat regions such as the sky come out mid-grey, meaning there was nothing there to lose. The outlines of the dome, the archways and the trees show up clearly, because that is where the blur did its damage.</p>
+  <h3>A single convolution: the unsharp mask filter</h3>
+  <p>The two passes, blur and then combine, can be done in one. Rearranging the definition:</p>
+<pre>sharpened = original + alpha * (original - blurred)
+          = (1 + alpha) * original - alpha * blurred</pre>
+  <p><code>blurred</code> is <code>original</code> convolved with the Gaussian G, and <code>original</code> itself can be written as a convolution with the unit impulse e, a kernel that is all zeros except a single 1 in the middle. So:</p>
+<pre>sharpened = original * [ (1 + alpha) * e - alpha * G ]</pre>
+<pre>def make_unsharp_mask(gaussian_kernel, alpha):
+    size = gaussian_kernel.shape[0]
+    impulse = np.zeros((size, size))
+    impulse[size // 2, size // 2] = 1
+    return (1 + alpha) * impulse - alpha * gaussian_kernel</pre>
+  <figure class="narrow">
+    <img src="images/part2_1_unsharp_kernel.jpg" alt="Unsharp mask kernel">
+    <figcaption>The unsharp mask filter for α = 1.</figcaption>
+  </figure>
+  <p>The filter is a positive spike in the middle surrounded by a shallow negative bowl. It boosts each pixel and subtracts a bit of its neighbourhood, so a pixel that already stands out from its surroundings gets pushed further apart from them, which is what "sharper" looks like. The weights still sum to 1, so the overall brightness is unchanged.</p>
+  <figure>
+    <img src="images/part2_1_alpha_sweep.jpg" alt="Alpha sweep">
+    <figcaption>Varying the sharpening amount α.</figcaption>
+  </figure>
+  <p>Small alpha strengthens the edges (high frequencies) only slightly, making the image look crisper. At alpha = 4.0 the image is oversharpened: edges become much stronger than the rest of the image. A dark halo appears around the dome because the high-frequency layer is positive on the bright side of an edge and negative on the dark side, so adding it back at a large multiple pushes the bright side brighter and the dark side darker, overshooting the original values in a band beside the edge. The gardens also become grainy, because noise and fine texture are high frequency too and get amplified by the same factor.</p>
+  <figure>
+    <img src="images/part2_1_photo.jpg" alt="Own image sharpened">
+    <figcaption>Another image: original, detail layer, sharpened with α = 1.5.</figcaption>
+  </figure>
+
+  <h3>Evaluation: blur a sharp image, then sharpen it again</h3>
+  <p>An image that is already sharp is blurred deliberately, then the sharpening is run on the blurred version and compared against the original.</p>
+  <figure>
+    <img src="images/part2_1_recovery.jpg" alt="Recovery">
+    <figcaption>Sharp original, blurred on purpose, sharpened again with α = 2.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part2_1_recovery_zoom.jpg" alt="Recovery zoom">
+    <figcaption>Close-up of the dome.</figcaption>
+  </figure>
+  <p>The dome's outline and frame of the arch are restored and largely close to original. The texture on the surface however has been lost, and cannot be recovered even if alpha is increased. This shows clearly that sharpening is not an inverse of blurring. The first blur already loses details on the high frequencies, and hence trying to retrieve fine details from the already blurred image will not be able to fully retrieve them. Sharpening only scales up whatever detail is still present, so where the blur has already flattened the texture to almost nothing, any value of alpha multiplied by that is still almost nothing.</p>
+
+  <h2 id="p22">Part 2.2: Hybrid Images</h2>
+  <p>A hybrid image reads as one thing up close and another from far away. Up close, fine detail dominates what you see; from a distance the eye cannot resolve that detail and only the broad shapes come through. So the <strong>high frequencies</strong> of one image are combined with the <strong>low frequencies</strong> of another. Following Oliva, Torralba and Schyns (2006), the low-pass filter is a Gaussian and the high-pass filter is the original minus its Gaussian blur.</p>
+<pre>low    = blur(image)             the broad shapes
+high   = image - blur(image)     the fine detail
+hybrid = low_of_far_image + high_of_close_image</pre>
+  <p>Each filter has its own σ because the two pictures do not need the same cutoff.</p>
+
+  <h3>Derek + Nutmeg</h3>
+  <p>The sample pair provided with the assignment. Nutmeg's head is tilted, so each image is rotated until the line between the eyes is level before scaling and cropping. Derek supplies the low frequencies and Nutmeg the high frequencies.</p>
+  <figure>
+    <img src="images/part2_2c_hybrid.jpg" alt="Derek and Nutmeg hybrid">
+    <figcaption>Far image (Derek), close image (Nutmeg), and the hybrid at σ 6 / 8.</figcaption>
+  </figure>
+  <figure class="mid">
+    <img src="images/part2_2c_hybrid_large.jpg" alt="Derek and Nutmeg hybrid, large">
+    <figcaption>Final hybrid.</figcaption>
+  </figure>
+  <p>Up close, the cat's stripes, its distinct eyes and its nose stand out. From further away, Derek's broad features take over: his face shape, dark hair, eyes, nose and smile. The switch was easier to see by squinting than by stepping back. Squinting blurs the image directly, acting as a low-pass filter that removes the high frequencies regardless of how large the image is on screen, whereas stepping back only hides detail once it becomes too small to resolve. Nutmeg's whiskers are thin but bright and high-contrast, so they stay visible until you are quite far from the screen.</p>
+
+  <h3>Trelawney (worried) to my friend Cynthia (smiling): full process</h3>
+  <p>Up close the hybrid shows Professor Trelawney, worried; from a distance it shows my friend Cynthia, smiling. Cynthia supplies the low frequencies and Trelawney the high frequencies.</p>
+  <figure>
+    <img src="images/part2_2_aligned.jpg" alt="Aligned inputs">
+    <figcaption>Cynthia (far image) and Trelawney (close image), both scaled to the same eye spacing and cropped with the eyes in the same place. The overlay is an alignment check.</figcaption>
+  </figure>
+  <p>The two faces have to occupy the same place for the effect to work. Each image is scaled so its eyes are the same distance apart, then cropped so the eyes land at the same spot. The eye positions were read off each image by hand. In the overlay, the eyes sit on the green line in both and the mouths land close together.</p>
+  <figure class="mid">
+    <img src="images/part2_2_cutoff_sweep.jpg" alt="Cutoff sweep">
+    <figcaption>Choosing the cutoffs: low-pass σ (rows) against high-pass σ (columns).</figcaption>
+  </figure>
+  <p>The two sigmas were chosen by trying a grid of values. The high-pass σ sets how much of the close image survives: too small and it is a faint tracing, too large and its heavy features leak into the far view. The low-pass σ sets how clean the far image is: too small and its detail competes with the close image, too large and it turns to mush. The final choice is σ = 4 for the low pass and σ = 3 for the high pass.</p>
+  <figure>
+    <img src="images/part2_2_fourier.jpg" alt="Fourier analysis">
+    <figcaption>Log magnitude of the Fourier transform of the two inputs, the filtered images, and the hybrid.</figcaption>
+  </figure>
+  <p>In the Fourier plots, the centre represents the broad, smooth parts of the image and the edges represent the fine details. The two input images have energy spread from the centre outwards, since they contain both. After the low-pass filter, Cynthia's image is bright only in a small area at the centre, so most of the fine detail has been removed. After the high-pass filter, Trelawney's image no longer has a strong bright centre, and its energy is spread out towards the edges instead, which is the fine detail that was kept. The hybrid looks like a combination of the two: it has the bright centre from Cynthia's image and the spread-out energy from Trelawney's. The bright horizontal and vertical lines through every plot, which are most obvious in the low-passed one, do not seem to come from the faces themselves. From what I understand, they appear because the Fourier transform treats the image as if it repeats, so the mismatch between opposite edges of the image shows up as these lines.</p>
+  <figure class="mid">
+    <img src="images/part2_2_hybrid_large.jpg" alt="Hybrid">
+    <figcaption>Final hybrid.</figcaption>
+  </figure>
+  <p>Trelawney works much better as the high-pass image simply because her features are much stronger, including wrinkles, eyes and teeth, which show up strongly at high frequency. However, when her image is low-passed instead, her dark frames show up at every distance, which overpowers the high-pass image of Cynthia. The most obvious artefact is the mouth expression, which remains visible even at a distance.</p>
+
+  <h3>Xi Jinping + Donald Trump</h3>
+  <figure>
+    <img src="images/part2_2b_hybrid.jpg" alt="Second hybrid">
+    <figcaption>Far image, close image, hybrid (σ 8 / 9, high-pass gain 1.6). Both portraits are rotated so the eye line is level before alignment. Sources: <a href="https://commons.wikimedia.org/wiki/File:Xi_Jinping_portrait_2019.jpg">Xi Jinping portrait 2019</a> (CC BY 4.0), <a href="https://commons.wikimedia.org/wiki/File:Donald_Trump_official_portrait.jpg">Donald Trump official portrait</a> (public domain).</figcaption>
+  </figure>
+  <figure class="mid">
+    <img src="images/part2_2b_parts.jpg" alt="Low-passed Xi and high-passed Trump">
+    <figcaption>The two filtered components: low-passed Xi (σ 8) and high-passed Trump (σ 9, scaled by 1.6, shifted to mid-grey for display).</figcaption>
+  </figure>
+  <figure class="mid">
+    <img src="images/part2_2b_hybrid_large.jpg" alt="Second hybrid, large">
+    <figcaption>Final hybrid.</figcaption>
+  </figure>
+  <p>Both are frontal official portraits from Wikimedia Commons. Neither is perfectly level, so alignment gets one extra step: each image is rotated so the line between the eyes is horizontal before scaling and cropping. The official portrait used for the close image is heavily retouched, so its fine detail is faint; the high-pass part is scaled up by 1.6 before adding so the close reading comes through.</p>
+  <p>Trump has much paler skin, blonde hair and white teeth, which are low-frequency features strong enough to show at every distance, so he does not work as the far image. On the other hand, Xi Jinping has a much smoother face, which suits being used as the low frequency. The hybrid image looks a bit cursed, though.</p>
+
+  <hr>
+  <h2 id="learned">The most important thing I learned</h2>
+  <p>The simplest idea I learnt from this project is that blurring and sharpening can both be done just by convolving an image with simple filters. What surprised me is how much comes out of one step: blurring an image and subtracting the blur from the original separates the fine detail from the broad shapes, and that single idea is behind edge detection, sharpening and hybrid images. It also showed me the limit of sharpening, since once a blur removes fine detail, sharpening can only boost what is left rather than bring it back.</p>
+</div>
+</body>
+</html>

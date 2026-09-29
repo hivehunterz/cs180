@@ -53,7 +53,7 @@ nav.toc a { margin-right: 14px; }
   <p class="sub">Project 2 · CS180, Fall 2026 · Tan Ee Khai</p>
   <nav class="toc">
     <a href="#p11">1.1</a><a href="#p12">1.2</a><a href="#p13">1.3</a>
-    <a href="#p21">2.1</a><a href="#p22">2.2</a><a href="#learned">Learned</a>
+    <a href="#p21">2.1</a><a href="#p22">2.2</a><a href="#p23">2.3</a><a href="#p24">2.4</a><a href="#learned">Learned</a>
   </nav>
 
   <p class="lead">Assignment 2 tests on basic convolution with filters in Part 1, using frequency-based applications in Part 2 using a mix of Gaussian Blur filters and impulse filters.</p>
@@ -66,11 +66,58 @@ nav.toc a { margin-right: 14px; }
 
   <h3>Four for loops</h3>
   <p>Loops 1 and 2 choose which output pixel (i, j) is being computed. Loops 3 and 4 walk over every position (u, v) of the filter, multiply the padded pixel under it by the flipped filter value, and add to a running total. Because the image was padded by <code>kh // 2</code> and <code>kw // 2</code>, the window that starts at padded (i, j) is centred on original pixel (i, j).</p>
+<pre>def pad_same(image, kh, kw):
+    """Zero-pad so that a kh x kw filter produces a same-size output."""
+    ph, pw = kh // 2, kw // 2
+    padded = np.zeros((image.shape[0] + 2 * ph, image.shape[1] + 2 * pw), dtype=float)
+    padded[ph:ph + image.shape[0], pw:pw + image.shape[1]] = image
+    return padded
+
+
+def conv2d_four_loops(image, kernel):
+    """2D convolution with zero padding ('same' output size), four for loops."""
+    image = np.asarray(image, dtype=float)
+    kernel = np.asarray(kernel, dtype=float)
+    kh, kw = kernel.shape
+    flipped = kernel[::-1, ::-1]          # convolution flips the filter
+    padded = pad_same(image, kh, kw)
+    out = np.zeros_like(image)
+
+    for i in range(image.shape[0]):           # loop 1: output row
+        for j in range(image.shape[1]):       # loop 2: output column
+            total = 0.0
+            for u in range(kh):               # loop 3: filter row
+                for v in range(kw):           # loop 4: filter column
+                    total += padded[i + u, j + v] * flipped[u, v]
+            out[i, j] = total
+    return out</pre>
 
   <h3>Two for loops</h3>
   <p>The inner two loops were just an elementwise multiply of a <code>kh × kw</code> patch by the flipped filter, followed by a sum. NumPy can do that in one line, so only the two loops over output pixels remain. Same answer, much faster.</p>
+<pre>def conv2d_two_loops(image, kernel):
+    """2D convolution with zero padding ('same' output size), two for loops."""
+    image = np.asarray(image, dtype=float)
+    kernel = np.asarray(kernel, dtype=float)
+    kh, kw = kernel.shape
+    flipped = kernel[::-1, ::-1]
+    padded = pad_same(image, kh, kw)
+    out = np.zeros_like(image)
 
-  <p>Both versions agree with <code>scipy.signal.convolve2d</code> with insignificant differences (likely due to rounding errors).</p>
+    for i in range(image.shape[0]):                 # loop 1: output row
+        for j in range(image.shape[1]):             # loop 2: output column
+            patch = padded[i:i + kh, j:j + kw]      # window under the filter
+            out[i, j] = np.sum(patch * flipped)
+    return out</pre>
+
+  <p>Both versions agree with <code>scipy.signal.convolve2d</code> with insignificant differences (likely due to rounding errors). The check uses a random 8×10 image and four filters, including an asymmetric one so that a missing flip would show up:</p>
+<pre>for name, k in [('box3', box3), ('Dx', Dx), ('Dy', Dy), ('asym', asym)]:
+    mine = conv2d_two_loops(img, k)
+    ref = convolve2d(img, k, mode='same', boundary='fill', fillvalue=0)
+    print(f'{name:5s} max |diff| = {np.abs(mine - ref).max():.2e}')</pre>
+<pre>box3  max |diff| = 1.11e-16
+Dx    max |diff| = 0.00e+00
+Dy    max |diff| = 0.00e+00
+asym  max |diff| = 1.78e-15</pre>
 
   <h3>Runtime</h3>
   <p>The same 9×9 box filter was timed with each version. Four loops were too slow for the full photo, so all three were first compared on a 300×300 crop.</p>
@@ -82,11 +129,22 @@ nav.toc a { margin-right: 14px; }
   <p>All three do the same calculation, so the speed difference comes from how much work Python does. Four loops do every multiplication one at a time in Python, which is slowest. Two loops let NumPy do each pixel's multiplications at once, so it is several times faster, but it still loops over every pixel in Python. Scipy does the whole convolution in compiled code with no Python loop, so it is the fastest by far.</p>
 
   <h3>Boundaries</h3>
-  <p>Only <code>'same'</code> mode is implemented: the image is zero-padded by <code>kh // 2</code> rows and <code>kw // 2</code> columns, so the output matches the input size (<code>'valid'</code> would return a smaller output, <code>'full'</code> a larger one). Zero padding treats everything outside the image as black, so pixels within four pixels of the edge (half the 9×9 filter) are darkened slightly in the box-filtered result. Scipy's <code>boundary='fill'</code> does the same, which is why the outputs match; <code>'symm'</code> mirrors the image at the edge and avoids the frame, while <code>'wrap'</code> borrows pixels from the opposite side.</p>
+  <p>Only <code>'same'</code> mode is implemented: the image is zero-padded by <code>kh // 2</code> rows and <code>kw // 2</code> columns, so the output matches the input size (<code>'valid'</code> would return a smaller output, <code>'full'</code> a larger one). Zero padding treats everything outside the image as black, so pixels within four pixels of the edge (half the 9×9 filter) are darkened slightly in the box-filtered result. Scipy's <code>boundary='fill'</code> does the same, while <code>'symm'</code> mirrors the image at the edge, and lastly <code>'wrap'</code> borrows pixels from the opposite side.</p>
 
+  <h3>Applying the filters to a photo</h3>
+<pre>rgb = iio.imread('photo_2026-09-26_16-06-52.jpg').astype(float) / 255.0
+gray = 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]   # grayscale
+
+box9 = np.ones((9, 9)) / 81
+Dx = np.array([[1, 0, -1]])
+Dy = np.array([[1], [0], [-1]])
+
+blurred = conv2d_two_loops(gray, box9)
+gx = conv2d_two_loops(gray, Dx)
+gy = conv2d_two_loops(gray, Dy)</pre>
   <figure>
     <img src="images/part1_results.jpg" alt="Photo convolved with box filter, Dx and Dy">
-    <figcaption>Grayscale photo, 9×9 box filter, D<sub>x</sub> = [1, −1], D<sub>y</sub> = [1, −1]<sup>T</sup>.</figcaption>
+    <figcaption>Grayscale photo, 9×9 box filter, D<sub>x</sub> = [1, 0, −1], D<sub>y</sub> = [1, 0, −1]<sup>T</sup>.</figcaption>
   </figure>
   <p>The photo is converted to grayscale with the luminance weights 0.299 R + 0.587 G + 0.114 B from Tutorial 1, since the eye is most sensitive to green and least to blue. The derivative outputs are signed and centred on zero, so they are shown with a symmetric grey colour map: mid-grey is zero, white is positive and black is negative. D<sub>x</sub> responds to vertical edges and D<sub>y</sub> to horizontal ones.</p>
 
@@ -106,9 +164,9 @@ nav.toc a { margin-right: 14px; }
   </figure>
   <figure>
     <img src="images/part1_2_edges.jpg" alt="Final edge map">
-    <figcaption>Final edge image at threshold 0.20.</figcaption>
+    <figcaption>Final edge image at threshold 0.25.</figcaption>
   </figure>
-  <p>At 0.05 and 0.10 the lawn is covered in speckle, since film grain in the grass produces gradients as large as some real edges. At 0.15 most of that is gone but patches of speckle survive along the bottom of the frame. By 0.25 the noise has cleared, but the distant buildings on the horizon have thinned to almost nothing and the tripod legs are starting to break up, and at 0.35 they are dashed. <strong>0.20</strong> is the compromise: the grass is nearly empty while the coat outline, the tripod, the camera body and the horizon line all survive as continuous edges.</p>
+  <p>At 0.10 and 0.15 the lawn is covered in speckle, since film grain in the grass produces gradients as large as some real edges. At 0.20 most of that is gone but patches of speckle survive along the bottom of the frame. By 0.30 the noise has cleared, but the distant buildings on the horizon have thinned to almost nothing and the tripod legs are starting to break up, and at 0.40 they are dashed. <strong>0.25</strong> is the compromise: only a few specks are left in the grass, while the coat outline, the tripod, the camera body and the horizon line all survive as continuous edges.</p>
 
   <h2 id="p13">Part 1.3: Derivative of Gaussian (DoG) Filter</h2>
   <p>The edge map from Part 1.2 was noisy. The fix is to smooth with a Gaussian before differentiating. This is done two ways and checked for agreement: blur the image with a Gaussian and then convolve with D<sub>x</sub> and D<sub>y</sub>, or convolve the Gaussian with D<sub>x</sub> and D<sub>y</sub> first to get two derivative-of-Gaussian filters and apply those to the original image in a single pass.</p>
@@ -123,9 +181,9 @@ nav.toc a { margin-right: 14px; }
   </figure>
   <figure>
     <img src="images/part1_3_threshold_sweep.jpg" alt="Threshold sweep, blurred">
-    <figcaption>Binarised blurred gradient magnitude at six thresholds. 0.06 is used below.</figcaption>
+    <figcaption>Binarised blurred gradient magnitude at six thresholds. 0.08 is used below.</figcaption>
   </figure>
-  <p>Blurring lowers the gradient magnitudes across the board, since a step spread over several pixels has a smaller per-pixel difference, so the threshold has to come down with it. At 0.02 the contours are fat and the lawn texture is still coming through. By 0.10 the coat outline has started to break up. <strong>0.06</strong> is used: the grass is essentially empty, and the coat, tripod, camera and horizon line all survive as continuous curves.</p>
+  <p>Blurring lowers the gradient magnitudes across the board, since a step spread over several pixels has a smaller per-pixel difference, so the threshold has to come down with it. At 0.04 the contours are fat and the lawn texture is still coming through, and at 0.06 a few blobs of it remain. From 0.10 the buildings on the horizon start to disappear, and by 0.15 the tripod legs are breaking up. <strong>0.08</strong> is used: the grass is essentially empty, and the coat, tripod, camera and horizon line all survive as continuous curves.</p>
   <p>The thin frame visible at the lower thresholds is not an artefact of the method. The provided <code>cameraman.png</code> is 542×540 with a pure-white margin around the classic 512×512 photograph, and that margin is a genuine step edge.</p>
   <figure class="mid">
     <img src="images/part1_3_comparison.jpg" alt="Comparison with Part 1.2">
@@ -134,17 +192,17 @@ nav.toc a { margin-right: 14px; }
   <h3>Comparison with the finite difference result</h3>
   <p><strong>The contours are continuous instead of broken.</strong> In Part 1.2 the coat outline and the tripod legs are dotted and dashed, and the lawn is scattered with isolated specks. After blurring, those same contours read as unbroken curves and the lawn is almost empty. Noise shows up as lone pixels with nothing beside them, whereas a real edge is a long curve on which neighbouring pixels also respond, so averaging each pixel with its neighbours weakens the former and reinforces the latter.</p>
   <p><strong>The edges are thicker and softer.</strong> A Gaussian spreads a sharp step over several pixels, so the derivative peak is wider and lower and the lines look fuzzier. Fine detail is smoothed away with the noise: the texture on the camera body and the far buildings on the horizon are much less distinct than in Part 1.2. The blur is a scale-selection dial, not only a noise filter.</p>
-  <p><strong>The whole image is dimmer.</strong> The blurred gradient magnitude is visibly darker everywhere, because spreading a step across several pixels makes each individual difference smaller. That is why the Part 1.2 threshold of 0.20 is useless here and a much lower one, 0.06, is needed to get a comparable edge map.</p>
+  <p><strong>The whole image is dimmer.</strong> The blurred gradient magnitude is visibly darker everywhere, because spreading a step across several pixels makes each individual difference smaller. That is why the Part 1.2 threshold of 0.25 is useless here and a much lower one, 0.08, is needed to get a comparable edge map.</p>
   <figure class="mid">
     <img src="images/part1_3_dog_filters.jpg" alt="DoG filters">
     <figcaption>The Gaussian and the two derivative-of-Gaussian filters, G * D<sub>x</sub> and G * D<sub>y</sub>.</figcaption>
   </figure>
   <figure>
     <img src="images/part1_3_verify.jpg" alt="Verification">
-    <figcaption>Blur-then-differentiate against a single DoG convolution. The difference panel is drawn on the same scale; the maximum difference is 9.3e-16.</figcaption>
+    <figcaption>Blur-then-differentiate against a single DoG convolution. The difference panel is drawn on the same scale, with the maximum difference being 9.9e-16.</figcaption>
   </figure>
   <p>Convolution is associative, so blurring and then differentiating is the same as convolving with a filter that has already been differentiated: (f * G) * D<sub>x</sub> = f * (G * D<sub>x</sub>). That means G * D<sub>x</sub> and G * D<sub>y</sub> can be precomputed once and applied to the image in a single pass.</p>
-  <p>Each DoG filter is a bell curve with one positive lobe and one negative lobe, split along the axis it differentiates. Applied to a flat region the two lobes cancel and the response is zero; across an edge they do not cancel, and the output is large. Unlike the bare [1, −1], the difference is taken between weighted averages of many pixels rather than two single ones, which is why it is less sensitive to a lone noisy pixel.</p>
+  <p>Each DoG filter is a bell curve with one positive lobe and one negative lobe, split along the axis it differentiates. Applied to a flat region the two lobes cancel out and the response is zero. Across an edge they do not cancel, and the output is large. Unlike the bare [1, 0, −1], the difference is taken between weighted averages of many pixels rather than two single pixels, which is why it is less sensitive to a lone noisy pixel.</p>
 
   <!-- ===================================================== PART 2 -->
   <hr>
@@ -215,7 +273,7 @@ hybrid = low_of_far_image + high_of_close_image</pre>
   <p>Up close, the cat's stripes, its distinct eyes and its nose stand out. From further away, Derek's broad features take over: his face shape, dark hair, eyes, nose and smile. The switch was easier to see by squinting than by stepping back. Squinting blurs the image directly, acting as a low-pass filter that removes the high frequencies regardless of how large the image is on screen, whereas stepping back only hides detail once it becomes too small to resolve. Nutmeg's whiskers are thin but bright and high-contrast, so they stay visible until you are quite far from the screen.</p>
 
   <h3>Trelawney (worried) to my friend Cynthia (smiling): full process</h3>
-  <p>Up close the hybrid shows Professor Trelawney, worried; from a distance it shows my friend Cynthia, smiling. Cynthia supplies the low frequencies and Trelawney the high frequencies.</p>
+  <p>Up close the hybrid shows Professor Trelawney, worried, and from a distance it shows my friend Cynthia, smiling. Cynthia supplies the low frequencies and Trelawney the high frequencies.</p>
   <figure>
     <img src="images/part2_2_aligned.jpg" alt="Aligned inputs">
     <figcaption>Cynthia (far image) and Trelawney (close image), both scaled to the same eye spacing and cropped with the eyes in the same place. The overlay is an alignment check.</figcaption>
@@ -250,12 +308,132 @@ hybrid = low_of_far_image + high_of_close_image</pre>
     <img src="images/part2_2b_hybrid_large.jpg" alt="Second hybrid, large">
     <figcaption>Final hybrid.</figcaption>
   </figure>
-  <p>Both are frontal official portraits from Wikimedia Commons. Neither is perfectly level, so alignment gets one extra step: each image is rotated so the line between the eyes is horizontal before scaling and cropping. The official portrait used for the close image is heavily retouched, so its fine detail is faint; the high-pass part is scaled up by 1.6 before adding so the close reading comes through.</p>
+  <p>Both are frontal official portraits from Wikimedia Commons. Neither is perfectly level, so alignment gets one extra step: each image is rotated so the line between the eyes is horizontal before scaling and cropping. The official portrait used for the close image is heavily retouched, so its fine detail is faint, so the high-pass part is scaled up by 1.6 before adding so the close reading comes through.</p>
   <p>Trump has much paler skin, blonde hair and white teeth, which are low-frequency features strong enough to show at every distance, so he does not work as the far image. On the other hand, Xi Jinping has a much smoother face, which suits being used as the low frequency. The hybrid image looks a bit cursed, though.</p>
+
+  <h2 id="p23">Part 2.3: Gaussian and Laplacian Stacks</h2>
+  <p>A Gaussian stack is like a Gaussian pyramid without the downsampling: every level is blurred more than the one before, but every level stays the same size as the original. To make each level behave like a pyramid level that has been halved in size, the blur doubles at every step (σ = 2, 4, 8, 16), giving five levels.</p>
+  <p>A Laplacian stack stores the difference between neighbouring Gaussian levels, which is the band of frequencies lost at that step. Its last level is the blurriest Gaussian level itself, so adding up every level of the Laplacian stack gives back the original image exactly (the largest error is 1.1e-16). No built-in pyramid functions are used. The blur is done as a row pass then a column pass with a 1D Gaussian from <code>cv2.getGaussianKernel</code>, since a 2D Gaussian is separable, which keeps the large kernels at the coarse levels fast.</p>
+<pre>def blur(image, sigma):
+    """Gaussian blur, one row pass then one column pass. Works on greyscale or colour images."""
+    size = int(6 * sigma) | 1                     # odd width, about 6 sigma
+    bell = cv2.getGaussianKernel(size, sigma)     # column vector that sums to 1
+    if image.ndim == 3:
+        return np.stack([blur(image[:, :, c], sigma) for c in range(image.shape[2])], axis=2)
+    rows_done = convolve2d(image, bell.T, mode='same', boundary='symm')
+    return convolve2d(rows_done, bell, mode='same', boundary='symm')
+
+
+SIGMAS = [2, 4, 8, 16]      # blur added at each step -&gt; 5 levels in every stack
+
+
+def gaussian_stack(image, sigmas=SIGMAS):
+    stack = [image]
+    for sigma in sigmas:
+        stack.append(blur(stack[-1], sigma))      # blur the previous level, never downsample
+    return stack
+
+
+def laplacian_stack(image, sigmas=SIGMAS):
+    g = gaussian_stack(image, sigmas)
+    bands = [g[i] - g[i + 1] for i in range(len(sigmas))]   # what each blur step removed
+    return bands + [g[-1]]                                  # plus the leftover low frequencies</pre>
+  <figure>
+    <img src="images/part2_3_stacks_apple.jpg" alt="Apple Gaussian and Laplacian stacks">
+    <figcaption>Apple: Gaussian stack (top) and Laplacian stack (bottom).</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part2_3_stacks_orange.jpg" alt="Orange Gaussian and Laplacian stacks">
+    <figcaption>Orange: Gaussian stack (top) and Laplacian stack (bottom).</figcaption>
+  </figure>
+  <p>Level 0 of the Laplacian stack holds only the finest texture, such as the dimples on the orange peel and the outline of each fruit. Each level after that holds coarser structure: by level 3 it is the highlights and the broad shading of the fruit, and level 4 is little more than the overall colour layout.</p>
+
+  <h3>Recreating Figure 3.42</h3>
+  <p>The mask is a step function: 1 on the left half (apple) and 0 on the right half (orange). Each Laplacian level of the apple is weighted by the matching level of the mask's Gaussian stack, each level of the orange by one minus that, and the two are added. Rows show Laplacian levels 0, 2 and 4 (high, middle and low frequencies), and the bottom row adds every level together. The left column is the masked apple, the middle the masked orange and the right the combined result, as in Szeliski's figure.</p>
+  <figure class="mid">
+    <img src="images/part2_3_fig342.jpg" alt="Figure 3.42 recreation">
+    <figcaption>Recreation of Figure 3.42 (a) to (l). Signed levels share one display range across each row.</figcaption>
+  </figure>
+  <p>The seam gets wider as the level gets coarser. At level 0 the mask has not been blurred at all, so the fine detail is cut exactly down the middle, which should be fine, since a hard cut through fine texture is not noticeable. At level 4 the mask has been blurred with the widest Gaussian, so the broad red of the apple fades into the orange's yellow over a wide band. Each band of frequencies is joined over a distance that suits its size, which is why the final image has no visible seam.</p>
+
+  <h2 id="p24">Part 2.4: Multiresolution Blending</h2>
+  <p>Blending combines every level of the two Laplacian stacks using the mask's Gaussian stack at the same level, then adds the levels back up. Colour images are handled by doing this separately for each colour channel, with the same mask for all three.</p>
+<pre>def blend_levels(image_a, image_b, mask, sigmas=SIGMAS):
+    """Per-level contributions of image_a (where mask = 1) and image_b (where mask = 0)."""
+    la = laplacian_stack(image_a, sigmas)
+    lb = laplacian_stack(image_b, sigmas)
+    gm = gaussian_stack(mask, sigmas)
+    part_a = [gm[i][:, :, None] * la[i] for i in range(len(la))]
+    part_b = [(1 - gm[i][:, :, None]) * lb[i] for i in range(len(lb))]
+    return part_a, part_b
+
+
+def blend(image_a, image_b, mask, sigmas=SIGMAS):
+    part_a, part_b = blend_levels(image_a, image_b, mask, sigmas)
+    return np.clip(sum(part_a) + sum(part_b), 0, 1)</pre>
+
+  <h3>The oraple</h3>
+  <figure>
+    <img src="images/part2_4_oraple.jpg" alt="Oraple">
+    <figcaption>Apple, orange, a hard cut with the unblurred step mask, and the multiresolution blend.</figcaption>
+  </figure>
+  <p>The hard cut shows a sharp vertical line where the red apple meets the yellow orange. In the blend the colour changes gradually across the middle, while the orange's dimpled texture still stops cleanly at the centre instead of fading out as a ghost.</p>
+
+  <h3>Straight seam: Earth and Mars</h3>
+  <p>A vertical step mask joins the left half of the Earth to the right half of Mars. The two photos frame their planets differently, so each disc is found first (the rows and columns that contain pixels brighter than the black background), then cropped to a square around it with the same margin and resized to 600×600, so that the two discs line up.</p>
+<pre>def crop_planet(image, margin=1.08):
+    """Square crop centred on the planet, with the disc filling the same share of every crop."""
+    grey = image.mean(axis=2)
+    lit_rows = np.where((grey &gt; 0.1).sum(axis=1) &gt; 20)[0]     # rows that cross the disc
+    lit_cols = np.where((grey &gt; 0.1).sum(axis=0) &gt; 20)[0]     # columns that cross the disc
+    centre_row = (lit_rows[0] + lit_rows[-1]) / 2
+    centre_col = (lit_cols[0] + lit_cols[-1]) / 2
+    radius = max(lit_rows[-1] - lit_rows[0], lit_cols[-1] - lit_cols[0]) / 2
+    half = int(round(margin * radius))
+
+    pad = half                                                # in case the square runs off the photo
+    padded = np.pad(image, ((pad, pad), (pad, pad), (0, 0)))  # pads with black, like space
+    top = int(round(centre_row)) - half + pad
+    left = int(round(centre_col)) - half + pad
+    square = padded[top:top + 2 * half, left:left + 2 * half]
+    return resize(square, (PLANET_SIZE, PLANET_SIZE), anti_aliasing=True)</pre>
+  <p>The crop matters since both images do not have similar proportions, with the Earth image having a larger proportion of "Earth" to background compared to Mars.</p>
+  <figure class="mid">
+    <img src="images/part2_4_seam_uncropped.jpg" alt="Earth and Mars blended without cropping">
+    <figcaption>Without cropping: both photos only resized to 600×600, then blended.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/part2_4_seam.jpg" alt="Earth and Mars blended">
+    <figcaption>Earth, Mars, a hard cut, and the multiresolution blend.</figcaption>
+  </figure>
+  <figure class="narrow">
+    <img src="images/part2_4_seam_large.jpg" alt="Earth and Mars blend, large">
+    <figcaption>Final blend.</figcaption>
+  </figure>
+  <p>In the hard cut, both halves meet along a line, while in the blend, Earth's blue and white gradually fade into orange. It does not, however, fade as nicely as the oraple, since blue and orange are opposite colours and the wide low-frequency transition is harder to notice there.</p>
+
+  <h3>Irregular mask: Xi Jinping's face on Donald Trump</h3>
+  <p>A face swap: an ellipse covering Xi's eyebrows, eyes, nose and mouth is blended into Trump's portrait, so Trump keeps his hair, ears, suit and background. The portraits are aligned with the same eye-based rotate, scale and crop as the hybrid images, but zoomed out so the whole head fits in the crop. Because the eyes land at the same place in both crops, the ellipse is placed relative to the eyes: it is centred just below them and sized in multiples of the distance between the pupils.</p>
+  <figure>
+    <img src="images/part2_4_irregular.jpg" alt="Face swap">
+    <figcaption>Xi, Trump, the mask, a hard cut, and the multiresolution blend.</figcaption>
+  </figure>
+  <figure class="narrow">
+    <img src="images/part2_4_irregular_large.jpg" alt="Face swap, large">
+    <figcaption>Final blend.</figcaption>
+  </figure>
+  <p>The hard cut looks like a mask stuck onto the head: Xi's skin is paler and pinker than Trump's, and the ellipse has a sharp outline running across the forehead and cheeks. In the blend the skin tone shifts gradually from Xi's in the middle to Trump's at the edges, and the outline disappears, so the face reads as one person with Trump's hair and Xi's features. I felt the Earth to Mars one was better, purely because facial proportions are not considered on a simple stitched image like this, while Mars and Earth have similar elliptical shapes instead.</p>
+
+  <h3>The process for my favourite blend</h3>
+  <figure class="mid">
+    <img src="images/part2_4_irregular_levels.jpg" alt="Laplacian stack of the face swap">
+    <figcaption>Laplacian levels 0, 2 and 4 of the face swap, and all levels summed. Left: masked Xi. Middle: masked Trump. Right: their sum. Compare Figure 10 of Burt and Adelson.</figcaption>
+  </figure>
+  <p>At level 0 only Xi's fine wrinkles and the outlines of his eyes and mouth are pasted in, with a sharp edge. At level 4 the masked regions are wide, soft blobs: Trump's face has a dark hole where the mask removed it, and Xi's blurred skin tone fills it in the sum. The fine detail changes over a short distance and the broad colour over a long one, which is what hides the edge of the ellipse.</p>
 
   <hr>
   <h2 id="learned">The most important thing I learned</h2>
-  <p>The simplest idea I learnt from this project is that blurring and sharpening can both be done just by convolving an image with simple filters. What surprised me is how much comes out of one step: blurring an image and subtracting the blur from the original separates the fine detail from the broad shapes, and that single idea is behind edge detection, sharpening and hybrid images. It also showed me the limit of sharpening, since once a blur removes fine detail, sharpening can only boost what is left rather than bring it back.</p>
+  <p>The simplest idea I learnt from this project is that blurring and sharpening can both be done just by convolving an image with simple filters. What surprised me is how much comes out of one step: blurring an image and subtracting the blur from the original separates the fine detail from the broad shapes, and that single idea is behind edge detection, sharpening, hybrid images and multiresolution blending. It also showed me the limit of sharpening, since once a blur removes fine detail, sharpening can only boost what is left rather than bring it back.</p>
 </div>
 </body>
 </html>

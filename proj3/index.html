@@ -156,7 +156,7 @@ def euler_sample(x_start, t_start, step_size, velocity):
     <tr><td>one-step</td><td class="r">0.0020</td></tr>
     <tr><td>Euler, 25 steps</td><td class="r">0.0025</td></tr>
   </table>
-  <p>The noise fades steadily along the trajectory: the sign is clear by t = 0.7 and the result is sharp at t = 1. Blur keeps coloured blotches and no detail. One-step is smooth but soft. Euler is the sharpest, with crisp cloud streaks and lamp detail, but some of that detail is invented: the lamp becomes a wire mesh and "AHEAD" turns into made-up letters. That is why one-step has the lowest MSE even though Euler looks better: MSE rewards a safe average, and sharp but wrong detail costs more than blur.</p>
+  <p>The noise decreases along the trajectory and by t = 0.7, the sign is clear, while t = 1.0 produces a sharp image. Blur keeps the blobs but no fine detail, and one-step is smooth but soft. Euler, lastly, is sharpest with lamp detail and words, though the lamp produces a fake wire mesh and "AHEAD" does not look like "AHEAD" anymore. That is why one-step has lower MSE even though Euler looks better to me. MSE rewards the safe average, and sharp but wrong details likely cost more than the blur.</p>
 
   <h2 id="a16">1.6 Generating Images from Noise</h2>
   <p>Setting t_start = 0 and passing pure noise to the same sampler generates new images (50 Euler steps, no guidance).</p>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project 4B — Feature Matching for Autostitching</title>
+<style>
+:root {
+  --bg: #ffffff; --text: #1a1a1a; --muted: #6b6b6b; --border: #e6e6e6; --accent: #003262; --code: #f4f4f4; --card: #fafafa;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #131416; --text: #e8e6e3; --muted: #9a9894; --border: #2a2d31; --accent: #7fb3e8; --code: #1e2124; --card: #191b1e; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 56px 28px 96px; }
+h1 { font-size: 2.1rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.02em; }
+h2 { font-size: 1.35rem; font-weight: 600; margin: 72px 0 6px; letter-spacing: -0.01em; }
+h3 { font-size: 1.05rem; font-weight: 600; margin: 36px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 40px; }
+.lead { color: var(--muted); margin: 0 0 18px; max-width: 760px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+p { margin: 0 0 12px; max-width: 760px; }
+ul, ol { max-width: 760px; padding-left: 22px; margin: 0 0 12px; }
+li { margin-bottom: 4px; }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+pre { background: var(--code); padding: 12px 14px; border-radius: 6px; overflow-x: auto; font-size: 0.82em; line-height: 1.45; max-width: 900px; }
+figure { margin: 18px 0 8px; }
+figure img { width: 100%; height: auto; display: block; border-radius: 6px; background: var(--card);
+  box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 4px 14px rgba(0,0,0,.06); }
+figure.narrow img { max-width: 560px; }
+figure.mid img { max-width: 820px; }
+figcaption { margin-top: 8px; font-size: 0.84rem; line-height: 1.4; color: var(--muted); max-width: 820px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 8px; align-items: start; }
+.pair figure { margin: 0; }
+@media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
+.tablewrap { overflow-x: auto; }
+table.nums { border-collapse: collapse; font-size: 0.92rem; margin: 8px 0 16px; }
+table.nums th, table.nums td { padding: 4px 18px 4px 0; text-align: left; white-space: nowrap; }
+table.nums th { border-bottom: 1px solid var(--border); font-weight: 600; }
+table.nums td.r, table.nums th.r { text-align: right; }
+.eq { font-family: "Cambria Math", "Latin Modern Math", Georgia, serif; font-size: 1.05rem; margin: 10px 0 14px 18px; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 64px 0 0; }
+nav.toc { font-size: 0.9rem; color: var(--muted); margin: 0 0 8px; }
+nav.toc a { margin-right: 14px; }
+nav.toc span { margin-right: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p><a href="../">← Back to projects</a></p>
+  <h1>Feature Matching for Autostitching</h1>
+  <p class="sub">Project 4B · CS180, Fall 2026 · Tan Ee Khai</p>
+  <nav class="toc">
+    <a href="#b0">Overview</a><a href="#b1">B.1 Corners</a><a href="#b2">B.2 Descriptors</a><a href="#b3">B.3 Matching</a><a href="#b4">B.4 RANSAC</a><a href="#b5">B.5 Rotation invariance</a><a href="#code">Code</a>
+  </nav>
+
+  <p class="lead">I replaced the hand-clicked correspondences from <a href="../proj4/">Part A</a> with automatic corner detection, feature matching and RANSAC, stitched the three Part A scenes automatically, compared them with the hand-clicked mosaics, and used the same pipeline to stitch photos from Yosemite. For the bells and whistles I added rotation-invariant descriptors.</p>
+
+  <p>Everything is written with NumPy, except the Harris corner response, which follows the course's <code>harris.py</code> and uses scikit-image. As in Part A, every photo is downscaled so that its long side is 1000 pixels, and all corners, matches and results below are on these downscaled images. The homography solver, the bilinear warp and the two-level blend are the ones from Part A.</p>
+
+  <!-- ===================================================== Part B -->
+  <hr>
+  <h2 id="b0">Overview</h2>
+  <p>In <a href="../proj4/">Part A</a> I clicked every correspondence by hand. In Part B the computer finds them, following "Multi-Image Matching using Multi-Scale Oriented Patches" by Brown, Szeliski and Winder, with the simplifications from the project page. The pipeline has four steps:</p>
+  <ol>
+    <li>I find corners in each photo, and Adaptive Non-Maximal Suppression (ANMS) keeps 500 of them that are strong and spread out.</li>
+    <li>I describe each corner by a small, blurred, normalised patch of the photo around it.</li>
+    <li>I match each corner to its most similar corner in the other photo, and keep the match only if its nearest neighbour (1-NN) is much closer than its second-nearest neighbour (2-NN).</li>
+    <li>4-point RANSAC finds the homography that the largest number of matches agree on. Those matches are the inliers, and the final homography is a least-squares fit to all of them.</li>
+  </ol>
+  <p>Besides the three Part A scenes, I stitched a new set of three photos from Yosemite. I found them too hard to hand-label because of the number of lines and features in the mountains, which make it hard to tell points apart manually. Every crack, ridge and pine tree looks like many others, so the automatic pipeline is the only practical way to stitch them.</p>
+  <figure><img src="images/yosemite_sources.jpg" alt="Yosemite source photos"><figcaption>My pics from Yosemite over the weekend.</figcaption></figure>
+
+  <h2 id="b1">B.1 Harris Corners and ANMS</h2>
+  <p>I compute the Harris corner response of the grayscale photo following the course's <code>harris.py</code>, which uses <code>corner_harris</code> and <code>peak_local_max</code> from scikit-image. I drop corners within 20 pixels of the border, because the descriptor needs a 40 × 40 window around each one. Even the plain blue sky has tiny local maxima of the Harris response caused by noise and JPEG compression, thousands of times weaker than a real corner. They would match nothing, and because they are isolated, ANMS would pick them. I therefore drop every corner whose response is below 0.1 % of the strongest one in the photo. In the Yosemite centre photo the strongest sky corner is at about 0.03 %, so this removes the whole sky and still leaves 12,461 corners.</p>
+  <p>Keeping only the strongest corners would crowd them into the highest-contrast regions. ANMS gives each corner a suppression radius r<sub>i</sub>, the distance to the nearest corner that is clearly stronger, meaning that the other corner's response times c<sub>robust</sub> = 0.9 still exceeds corner i's. I then keep the 500 corners with the largest radii. A corner in a busy region has a stronger neighbour close by, so its radius is small. The best corner in a quiet region has a large radius, so the chosen corners cover the whole photo. Comparing all pairs of 12,000 corners at once would need a very large distance matrix, so I compute the radii in blocks of 1,000 corners, which takes about 3 to 4 seconds per photo.</p>
+  <figure><img src="images/yosemite_corners.jpg" alt="Yosemite Harris corners and ANMS"><figcaption>Yosemite centre photo: all Harris corners above the threshold (left), the 500 strongest (middle) and the 500 chosen by ANMS (right). The strongest corners crowd onto the cliff edges and boulders, while ANMS spreads them over Half Dome, the cliffs and the trees.</figcaption></figure>
+  <figure><img src="images/hallway_corners.jpg" alt="Hallway Harris corners and ANMS"><figcaption>Hallway centre photo: the strongest corners cluster on the ceiling lights, door frames and whiteboard, and ANMS spreads them along the walls and carpet.</figcaption></figure>
+
+  <h2 id="b2">B.2 Feature Descriptors</h2>
+  <p>For each ANMS corner I take the 40 × 40 window centred on it and keep every fifth pixel, which gives an 8 × 8 patch. Keeping every fifth pixel of the raw photo would alias, so I first blur the photo with a Gaussian of σ = 2, which removes detail finer than the new sample spacing. The result is a large, blurry descriptor that still matches when a corner shifts by a pixel or two between photos. I then bias/gain normalise each patch by subtracting its mean and dividing by its standard deviation, which removes the brightness and contrast changes caused by the phone re-exposing every shot. The descriptor is the 64 values of the normalised patch.</p>
+  <figure><img src="images/yosemite_descriptors.jpg" alt="Extracted descriptors"><figcaption>Eight ANMS corners from the Yosemite centre photo, each with its 40 × 40 window and its normalised 8 × 8 descriptor. The normalisation removes colour and brightness, so only the pattern of light and dark is compared.</figcaption></figure>
+
+  <h2 id="b3">B.3 Feature Matching</h2>
+  <p>For every descriptor in one photo I compute the squared distance to all 500 descriptors in the other photo. The nearest one (1-NN) is the candidate match, but in a photo full of similar texture, such as rows of windows or a forest of pine trees, the nearest neighbour is often just one of many look-alikes. Lowe's ratio test compares the 1-NN distance with the 2-NN distance. A true match is much closer than anything else, so the ratio 1-NN / 2-NN is small. An ambiguous corner has two nearly equal candidates, so its ratio is close to 1. I keep a match when the ratio of distances is below 0.6. On squared distances, the quantity in Figure 6b of the paper, this is a threshold of 0.36, where the paper's distribution of correct matches is still high and that of incorrect matches is low.</p>
+  <figure><img src="images/yosemite_matches_left.jpg" alt="Yosemite matches"><figcaption>Yosemite left and centre photos: the 146 matches that pass the ratio test, before RANSAC.</figcaption></figure>
+  <p>To check the threshold on my own photos, I used the final RANSAC homography from B.4 to label every corner's nearest neighbour as correct, if the homography sends the corner within 3 pixels of it, or incorrect otherwise. Incorrect nearest neighbours almost all have a ratio above 0.8, while correct ones are spread from 0.1 to 0.8. Below 0.6 there are 140 correct matches and only 6 incorrect ones. A threshold of about 0.7 would add some correct matches, but 0.6 keeps the matches very clean and still leaves plenty for RANSAC.</p>
+  <figure class="mid"><img src="images/yosemite_ratio_hist.jpg" alt="Ratio histogram"><figcaption>Ratio of 1-NN to 2-NN distance for all 500 corners of the Yosemite left photo, split into correct and incorrect nearest neighbours.</figcaption></figure>
+
+  <h2 id="b4">B.4 RANSAC and Automatic Mosaics</h2>
+  <p>A few matches that pass the ratio test are still wrong, for example two different cracks that look alike, and a least-squares fit is pulled far off by even one of them. I implemented 4-point RANSAC from scratch:</p>
+  <ol>
+    <li>I pick 4 matches at random and compute the homography through them exactly with my <code>computeH</code> from Part A.</li>
+    <li>I send every matched point through this homography and count the inliers, the matches that land within ε = 2 pixels of their partner.</li>
+    <li>I repeat this 3,000 times and keep the largest inlier set.</li>
+    <li>I refit the homography with least squares on all of those inliers.</li>
+  </ol>
+  <p>A wrong match almost never agrees with a homography fitted to correct matches, so the largest inlier set is made of correct matches. Even if only 20 % of the matches were correct, the chance that 3,000 samples never draw 4 correct ones would be (1 − 0.2<sup>4</sup>)<sup>3000</sup> ≈ 0.8 %, and every scene here has a much higher inlier rate than that. The mosaics then use the Part A canvas and two-level blend unchanged, with the centre photo as the reference.</p>
+  <figure><img src="images/yosemite_ransac_left.jpg" alt="Yosemite RANSAC left"><figcaption>Yosemite, left to centre: 130 of the 146 matches are RANSAC inliers (green), and the other 16 are outliers (red).</figcaption></figure>
+  <figure><img src="images/yosemite_ransac_right.jpg" alt="Yosemite RANSAC right"><figcaption>Yosemite, right to centre: 168 of 192 matches are inliers.</figcaption></figure>
+  <figure><img src="images/yosemite_mosaic_auto.jpg" alt="Yosemite automatic mosaic"><figcaption>Yosemite mosaic, stitched fully automatically. Half Dome, the ridge lines, the forest and both trail signs continue across the seams. The signs are only a few metres from the camera, so they are the most sensitive to parallax, but they also line up.</figcaption></figure>
+
+  <h3>Hand-clicked and automatic mosaics side by side</h3>
+  <p>For the three Part A scenes I can check the automatic homography against my own clicks. I send my hand-clicked points through the automatic homography and measure how far they land from where I clicked their partners. My clicks are only accurate to a pixel or two, so a value close to the manual fit's own error means that the two homographies agree.</p>
+  <div class="tablewrap"><table class="nums">
+    <tr><th>Scene</th><th>Photo pair</th><th class="r">Matches</th><th class="r">Inliers</th><th class="r">My clicks, auto H</th><th class="r">My clicks, manual H</th></tr>
+    <tr><td>Yosemite</td><td>left → centre</td><td class="r">146</td><td class="r">130</td><td class="r">–</td><td class="r">–</td></tr>
+    <tr><td></td><td>right → centre</td><td class="r">192</td><td class="r">168</td><td class="r">–</td><td class="r">–</td></tr>
+    <tr><td>Hallway</td><td>left → centre</td><td class="r">55</td><td class="r">19</td><td class="r">2.23 px</td><td class="r">1.36 px</td></tr>
+    <tr><td></td><td>right → centre</td><td class="r">62</td><td class="r">18</td><td class="r">3.08 px</td><td class="r">0.53 px</td></tr>
+    <tr><td>Path</td><td>left → centre</td><td class="r">68</td><td class="r">60</td><td class="r">1.28 px</td><td class="r">0.59 px</td></tr>
+    <tr><td></td><td>right → centre</td><td class="r">60</td><td class="r">42</td><td class="r">1.32 px</td><td class="r">0.40 px</td></tr>
+    <tr><td>Courtyard (B.5)</td><td>left → centre</td><td class="r">41</td><td class="r">23</td><td class="r">2.44 px</td><td class="r">1.45 px</td></tr>
+    <tr><td></td><td>right → centre</td><td class="r">24</td><td class="r">14</td><td class="r">2.40 px</td><td class="r">1.17 px</td></tr>
+  </table></div>
+  <p>The manual error is always lower, because the manual homography is fitted to exactly those clicks. The automatic homographies come within one to three pixels of them, using more points, none of which I had to click. The hallway has the fewest inliers, because its plain walls and carpet have little texture and its repeated door frames are ambiguous.</p>
+  <div class="pair">
+    <figure><img src="images/hallway_ransac_left.jpg" alt="Hallway RANSAC left"><figcaption>Hallway, left to centre: 19 inliers.</figcaption></figure>
+    <figure><img src="images/hallway_ransac_right.jpg" alt="Hallway RANSAC right"><figcaption>Hallway, right to centre: 18 inliers.</figcaption></figure>
+  </div>
+  <figure><img src="images/hallway_manual_vs_auto.jpg" alt="Hallway manual vs automatic"><figcaption>Hallway: hand-clicked (left) and automatic (right) mosaics. Both align the door frames, lights and whiteboard. The two homographies agree in the overlaps but differ slightly in their perspective terms, and that difference grows towards the outer edges, so the automatic version stretches the side photos less.</figcaption></figure>
+  <div class="pair">
+    <figure><img src="images/path_ransac_left.jpg" alt="Path RANSAC left"><figcaption>Path, left to centre: 60 of 68 matches are inliers.</figcaption></figure>
+    <figure><img src="images/path_ransac_right.jpg" alt="Path RANSAC right"><figcaption>Path, right to centre: 42 of 60 matches are inliers.</figcaption></figure>
+  </div>
+  <figure><img src="images/path_manual_vs_auto.jpg" alt="Path manual vs automatic"><figcaption>Path: hand-clicked (top) and automatic (bottom) mosaics. The barred window, the path and the kerbs line up in both. The left photo is the most stretched, and the automatic homography stretches it less, which makes the canvas 3027 pixels wide instead of 4276.</figcaption></figure>
+
+  <h3>The courtyard needs rotation invariance</h3>
+  <p>The courtyard photos were taken looking upward while turning, so the side photos are rotated by about 23 degrees relative to the centre photo. An axis-aligned patch of a rotated corner looks different from the same corner upright, so most true matches fail the ratio test. Only 14 and 12 matches pass, RANSAC finds just 7 and 8 inliers among them, and my clicks land 5 to 6 pixels from where those homographies send them. I therefore built the courtyard mosaic with the rotation-invariant descriptors from B.5.</p>
+  <figure><img src="images/courtyard_ransac_left_axis.jpg" alt="Courtyard axis-aligned matches"><figcaption>Courtyard, left to centre, with axis-aligned descriptors: only 7 inliers out of 14 matches.</figcaption></figure>
+
+  <h2 id="b5">B.5 Bells &amp; Whistles: Rotation Invariance</h2>
+  <p>Following Section 4 of the paper, I give every corner an orientation and sample its descriptor in a window rotated to match it:</p>
+  <ol>
+    <li><strong>Orientation.</strong> I blur the grayscale photo with σ = 1, take its gradient, and blur each gradient component again with σ = 4.5. The corner's orientation θ is the direction of this smoothed gradient. The large blur makes the direction depend on the whole neighbourhood rather than on a few noisy pixels.</li>
+    <li><strong>Rotated sampling.</strong> I rotate the 8 × 8 grid of sample offsets, from −17.5 to 17.5 pixels in steps of 5, by θ and place it on the corner. I read the blurred photo at those 64 locations with bilinear interpolation, since the rotated grid falls between pixels.</li>
+    <li><strong>Normalisation.</strong> I bias/gain normalise the patch as before.</li>
+  </ol>
+  <p>If the photo rotates, the gradient direction rotates with it, so the sampling grid turns by the same angle and the descriptor stays the same. To test this, I rotated the Yosemite centre photo by 30 degrees with my own bilinear warp and matched it against the original. With axis-aligned descriptors not a single match passes the ratio test. With oriented descriptors 208 matches pass, and 206 of them are correct.</p>
+  <figure><img src="images/yosemite_rotation_test.jpg" alt="Rotation test"><figcaption>Oriented descriptors matching the Yosemite centre photo against a copy rotated by 30 degrees: 206 correct matches (green) out of 208.</figcaption></figure>
+  <p>With oriented descriptors the courtyard matches: RANSAC finds 23 and 14 inliers, and my clicks land within about 2.4 pixels of where the automatic homographies send them.</p>
+  <div class="pair">
+    <figure><img src="images/courtyard_ransac_left.jpg" alt="Courtyard RANSAC left, oriented"><figcaption>Courtyard, left to centre, oriented descriptors: 23 inliers.</figcaption></figure>
+    <figure><img src="images/courtyard_ransac_right.jpg" alt="Courtyard RANSAC right, oriented"><figcaption>Courtyard, right to centre, oriented descriptors: 14 inliers.</figcaption></figure>
+  </div>
+  <figure><img src="images/courtyard_manual_vs_auto.jpg" alt="Courtyard manual vs automatic"><figcaption>Courtyard: hand-clicked (top) and automatic (bottom) mosaics. The chimney, roof lines and rows of windows meet across the seams in both.</figcaption></figure>
+
+  <!-- ===================================================== Code -->
+  <hr>
+  <h2 id="code">Code</h2>
+  <p>Part B is in <code>proj4b_autostitch.ipynb</code>, submitted with the project, which reuses the Part A homography, warping and blending functions from <code>proj4a_rectify.ipynb</code>. Its main functions are <code>get_harris_corners</code>, <code>anms</code>, <code>describe_axis</code>, <code>match_features</code> and <code>ransac_homography</code>, and for B.5 <code>orientations</code> and <code>describe_oriented</code>.</p>
+</div>
+</body>
+</html>

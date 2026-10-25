@@ -93,19 +93,9 @@ def computeH(im1_pts, im2_pts):
     h, *_ = np.linalg.lstsq(A, b, rcond=None)
     return np.append(h, 1.0).reshape(3, 3)</pre>
 
-  <h3>Checking the solver</h3>
-  <p>A made-up homography was applied to ten random points to check that <code>computeH</code> recovers it. With exact points the largest error in any matrix entry is about 6 × 10<sup>−10</sup>, which is rounding error. About one pixel of random noise was then added to the target points, to imitate imperfect clicking, and the system was solved with 4, 6 and 10 of them. The error is measured against the noise-free positions.</p>
-  <div class="tablewrap"><table class="nums">
-    <tr><th>Points used</th><th class="r">Mean reprojection error</th></tr>
-    <tr><td>4</td><td class="r">2.29 px</td></tr>
-    <tr><td>6</td><td class="r">0.58 px</td></tr>
-    <tr><td>10</td><td class="r">0.47 px</td></tr>
-  </table></div>
-  <p>With four points every clicking error goes straight into the matrix, and one pixel of noise grows into more than two pixels of error. With more points, least squares averages the errors out, so eight correspondences were used for each pair of photos in the mosaics.</p>
-
   <h3>Choosing the correspondences</h3>
-  <p>The correspondences were chosen with a custom clicking tool in matplotlib. For rectification it records four corners on one image. For mosaics it shows the side photo and the centre photo next to each other and takes clicks in alternation, giving each pair the same number and colour in both panels.</p>
-  <p>Finding the points was an arduous process and required zooming in to pixel level, since items, specifically edges or corners that can be recognised, were small in these pictures. After downscaling, a window corner or the tip of a door frame is only a few pixels across, so a careless click lands a pixel or two off, and the solver test above shows how much that matters. Every point was zoomed in on before clicking, and the chosen features were sharp, unmistakable and spread across the whole overlap, such as window and door corners, the chimney top and the ends of light fixtures. The sky, clouds and leaves were avoided, since they moved between shots, as were objects very close to the camera, where any small movement of the phone shows up as parallax.</p>
+  <p>The correspondences were chosen with a custom clicking tool in matplotlib. For rectification it records four corners on one image. For mosaics it shows the side photo and the centre photo next to each other and takes clicks in alternation, giving each pair the same number and colour in both panels. Eight correspondences were used for each pair of photos, since least squares averages out small clicking errors.</p>
+  <p>Finding the points was an arduous process and required zooming in to pixel level, since items, specifically edges or corners that can be recognised, were small in these pictures. After downscaling, a window corner or the tip of a door frame is only a few pixels across, so a careless click lands a pixel or two off. Every point was zoomed in on before clicking, and the chosen features were sharp, unmistakable and spread across the whole overlap, such as window and door corners, the chimney top and the ends of light fixtures. The sky, clouds and leaves were avoided, since they moved between shots, as were objects very close to the camera, where any small movement of the phone shows up as parallax.</p>
   <figure><img src="images/hallway_pairs_left.jpg" alt="Hallway left-centre correspondences"><figcaption>Hallway, left and centre photos: eight correspondences, numbered and coloured to match.</figcaption></figure>
   <figure><img src="images/hallway_pairs_right.jpg" alt="Hallway right-centre correspondences"><figcaption>Hallway, right and centre photos.</figcaption></figure>
   <figure><img src="images/courtyard_pairs_left.jpg" alt="Courtyard left-centre correspondences"><figcaption>Courtyard, left and centre photos.</figcaption></figure>

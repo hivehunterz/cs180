@@ -57,14 +57,12 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
     <span>Part A</span><a href="#a1">A.1 Shooting</a><a href="#a2">A.2 Homographies</a><a href="#a3">A.3 Warping</a><a href="#a4">A.4 Mosaics</a><a href="#code">Code</a>
   </nav>
 
-  <p class="lead">Three scenes were photographed by rotating a phone about a fixed point. The homography between each pair of photos was recovered from hand-clicked correspondences, inverse warping with nearest-neighbour and bilinear interpolation was written from scratch and used to rectify a flyer and a Pokémon card, and each scene was stitched into a blended mosaic.</p>
-
-  <p>Everything is written with NumPy. Library code is only used for loading and resizing images, for solving the least-squares system, and for plotting. Before processing, every photo is downscaled so that its long side is 1000 pixels, which keeps the warps fast. All clicked points and all results below are on these downscaled images.</p>
+  <p class="lead">I applied homographies from the lectures by first photographing three scenes while rotating about a fixed point, recovering the homography between each pair of photos from hand-clicked correspondences, and using them to also rectify a flyer and my Pokémon card, with the scenes being stitched into blended mosaics.</p>
 
   <!-- ===================================================== A.1 -->
   <hr>
   <h2 id="a1">A.1 Shooting the Pictures</h2>
-  <p>Each scene was shot from one spot, with the phone rotated between shots, so that the camera's centre of projection stayed fixed and every pair of photos is related by a homography. Neighbouring photos overlap by roughly half a frame. Each scene has three photos, left, centre and right, and the centre photo is the reference for its mosaic.</p>
+  <p>Each scene was shot from one spot, with the phone rotated between shots, so that the camera's centre of projection stayed fixed and every pair of photos is related by a homography. Neighbouring photos overlap by roughly half a frame. Each scene has three photos, left, centre and right, and the centre photo is the reference for its mosaic. Every photo is downscaled so that its long side is 1000 pixels, and all clicked points and results below are on these downscaled images.</p>
   <ul>
     <li><strong>Hallway:</strong> the hallway outside my room, with wooden door frames, ceiling lights and an exit sign that make clear corners.</li>
     <li><strong>Courtyard:</strong> an enclosed courtyard, shot looking upward, with a chimney, roof lines and rows of windows.</li>

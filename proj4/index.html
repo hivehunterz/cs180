@@ -57,14 +57,14 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
     <span>Part A</span><a href="#a1">A.1 Shooting</a><a href="#a2">A.2 Homographies</a><a href="#a3">A.3 Warping</a><a href="#a4">A.4 Mosaics</a><a href="#code">Code</a>
   </nav>
 
-  <p class="lead">I photographed three scenes by rotating my phone about a fixed point, recovered the homography between each pair of photos from hand-clicked correspondences, wrote inverse warping with nearest-neighbour and bilinear interpolation from scratch, used it to rectify a flyer and a Pokémon card, and stitched each scene into a blended mosaic.</p>
+  <p class="lead">Three scenes were photographed by rotating a phone about a fixed point. The homography between each pair of photos was recovered from hand-clicked correspondences, inverse warping with nearest-neighbour and bilinear interpolation was written from scratch and used to rectify a flyer and a Pokémon card, and each scene was stitched into a blended mosaic.</p>
 
-  <p>Everything is written with NumPy. I only use library code for loading and resizing images, for solving the least-squares system, and for plotting. Before processing, every photo is downscaled so that its long side is 1000 pixels, which keeps the warps fast. All clicked points and all results below are on these downscaled images.</p>
+  <p>Everything is written with NumPy. Library code is only used for loading and resizing images, for solving the least-squares system, and for plotting. Before processing, every photo is downscaled so that its long side is 1000 pixels, which keeps the warps fast. All clicked points and all results below are on these downscaled images.</p>
 
   <!-- ===================================================== A.1 -->
   <hr>
   <h2 id="a1">A.1 Shooting the Pictures</h2>
-  <p>For each scene I stood in one spot and rotated the phone between shots, so that the camera's centre of projection stayed fixed and every pair of photos is related by a homography. Neighbouring photos overlap by roughly half a frame. Each scene has three photos, left, centre and right, and the centre photo is the reference for its mosaic.</p>
+  <p>Each scene was shot from one spot, with the phone rotated between shots, so that the camera's centre of projection stayed fixed and every pair of photos is related by a homography. Neighbouring photos overlap by roughly half a frame. Each scene has three photos, left, centre and right, and the centre photo is the reference for its mosaic.</p>
   <ul>
     <li><strong>Hallway:</strong> the hallway outside my room, with wooden door frames, ceiling lights and an exit sign that make clear corners.</li>
     <li><strong>Courtyard:</strong> an enclosed courtyard, shot looking upward, with a chimney, roof lines and rows of windows.</li>
@@ -81,7 +81,7 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
   <div class="eq">[ w x′, w y′, w ]<sup>T</sup> = [ a b c ; d e f ; g h 1 ] · [ x, y, 1 ]<sup>T</sup></div>
   <p>The matrix produces a scaled point, and dividing by w = g x + h y + 1 gives the real position. This division is what lets a homography represent perspective: points farther from the camera get a larger w and are pulled closer together. Multiplying both sides by the denominator turns each correspondence into two equations that are linear in the eight unknowns a to h:</p>
   <div class="eq">x a + y b + c − x x′ g − y x′ h = x′<br>x d + y e + f − x y′ g − y y′ h = y′</div>
-  <p>The x′ equation contains a, b, c, g and h, and the y′ equation contains d, e, f, g and h. My <code>computeH(im1_pts, im2_pts)</code> stacks these two rows for every correspondence into a system A<strong>h</strong> = b, where A is 2n × 8, <strong>h</strong> is the vector of eight unknowns and b holds the target coordinates. With four correspondences the system is square. With more it is overdetermined, and I solve it with least squares, which minimises the total squared error over all equations. The eight values, followed by the fixed 1, are then reshaped into the 3 × 3 matrix.</p>
+  <p>The x′ equation contains a, b, c, g and h, and the y′ equation contains d, e, f, g and h. My <code>computeH(im1_pts, im2_pts)</code> stacks these two rows for every correspondence into a system A<strong>h</strong> = b, where A is 2n × 8, <strong>h</strong> is the vector of eight unknowns and b holds the target coordinates. With four correspondences the system is square. With more it is overdetermined, and it is solved with least squares, which minimises the total squared error over all equations. The eight values, followed by the fixed 1, are then reshaped into the 3 × 3 matrix.</p>
 <pre>def build_system(im1_pts, im2_pts):
     A = np.zeros((2 * n, 8)); b = np.zeros(2 * n)
     for i, ((x, y), (xp, yp)) in enumerate(zip(p, q)):
@@ -96,18 +96,18 @@ def computeH(im1_pts, im2_pts):
     return np.append(h, 1.0).reshape(3, 3)</pre>
 
   <h3>Checking the solver</h3>
-  <p>I made up a homography, sent ten random points through it, and checked that <code>computeH</code> recovers it. With exact points the largest error in any matrix entry is about 6 × 10<sup>−10</sup>, which is rounding error. I then added about one pixel of random noise to the target points, to imitate imperfect clicking, and solved with 4, 6 and 10 of them. The error is measured against the noise-free positions.</p>
+  <p>A made-up homography was applied to ten random points to check that <code>computeH</code> recovers it. With exact points the largest error in any matrix entry is about 6 × 10<sup>−10</sup>, which is rounding error. About one pixel of random noise was then added to the target points, to imitate imperfect clicking, and the system was solved with 4, 6 and 10 of them. The error is measured against the noise-free positions.</p>
   <div class="tablewrap"><table class="nums">
     <tr><th>Points used</th><th class="r">Mean reprojection error</th></tr>
     <tr><td>4</td><td class="r">2.29 px</td></tr>
     <tr><td>6</td><td class="r">0.58 px</td></tr>
     <tr><td>10</td><td class="r">0.47 px</td></tr>
   </table></div>
-  <p>With four points every clicking error goes straight into the matrix, and one pixel of noise grows into more than two pixels of error. With more points, least squares averages the errors out, so I used eight correspondences for each pair of photos in the mosaics.</p>
+  <p>With four points every clicking error goes straight into the matrix, and one pixel of noise grows into more than two pixels of error. With more points, least squares averages the errors out, so eight correspondences were used for each pair of photos in the mosaics.</p>
 
   <h3>Choosing the correspondences</h3>
-  <p>I wrote my own clicking tool in matplotlib. For rectification it records four corners on one image. For mosaics it shows the side photo and the centre photo next to each other and takes clicks in alternation, giving each pair the same number and colour in both panels. A right click undoes the last point, and clicks are saved to a file so they are only made once. Inside the notebook kernel a single click was sometimes registered several times, so the tool ignores any click within 3 pixels of an earlier one.</p>
-  <p>Finding the points was an arduous process and required zooming in to pixel level, since items, specifically edges or corners that can be recognised, were small for the pictures that I used. After downscaling, a window corner or the tip of a door frame is only a few pixels across, so a careless click lands a pixel or two off, and the solver test above shows how much that matters. I zoomed in on every point before clicking it, and I chose sharp, unmistakable features spread across the whole overlap, such as window and door corners, the chimney top and the ends of light fixtures. I avoided the sky, clouds and leaves, which moved between shots, and objects very close to the camera, where any small movement of the phone shows up as parallax.</p>
+  <p>The correspondences were chosen with a custom clicking tool in matplotlib. For rectification it records four corners on one image. For mosaics it shows the side photo and the centre photo next to each other and takes clicks in alternation, giving each pair the same number and colour in both panels.</p>
+  <p>Finding the points was an arduous process and required zooming in to pixel level, since items, specifically edges or corners that can be recognised, were small in these pictures. After downscaling, a window corner or the tip of a door frame is only a few pixels across, so a careless click lands a pixel or two off, and the solver test above shows how much that matters. Every point was zoomed in on before clicking, and the chosen features were sharp, unmistakable and spread across the whole overlap, such as window and door corners, the chimney top and the ends of light fixtures. The sky, clouds and leaves were avoided, since they moved between shots, as were objects very close to the camera, where any small movement of the phone shows up as parallax.</p>
   <figure><img src="images/hallway_pairs_left.jpg" alt="Hallway left-centre correspondences"><figcaption>Hallway, left and centre photos: eight correspondences, numbered and coloured to match.</figcaption></figure>
   <figure><img src="images/hallway_pairs_right.jpg" alt="Hallway right-centre correspondences"><figcaption>Hallway, right and centre photos.</figcaption></figure>
   <figure><img src="images/courtyard_pairs_left.jpg" alt="Courtyard left-centre correspondences"><figcaption>Courtyard, left and centre photos.</figcaption></figure>
@@ -116,7 +116,7 @@ def computeH(im1_pts, im2_pts):
   <figure><img src="images/path_pairs_right.jpg" alt="Path right-centre correspondences"><figcaption>Path, right and centre photos.</figcaption></figure>
 
   <h3>Recovered homographies for the mosaics</h3>
-  <p>Each side photo's homography maps it into its centre photo's coordinates. With eight pairs the least-squares fit cannot pass through every point exactly, so the reprojection error, the distance between where H sends each clicked point and where I clicked its partner, measures how consistent the clicks are. Every pair is within 3 pixels.</p>
+  <p>Each side photo's homography maps it into its centre photo's coordinates. With eight pairs the least-squares fit cannot pass through every point exactly, so the reprojection error, the distance between where H sends each clicked point and where its partner was clicked, measures how consistent the clicks are. Every pair is within 3 pixels.</p>
   <div class="tablewrap"><table class="nums">
     <tr><th>Scene</th><th>Photo pair</th><th class="r">Pairs</th><th class="r">Mean error</th><th class="r">Max error</th></tr>
     <tr><td>Hallway</td><td>left → centre</td><td class="r">8</td><td class="r">1.36 px</td><td class="r">2.12 px</td></tr>
@@ -145,14 +145,14 @@ Path      H left -> centre                  H right -> centre
   <!-- ===================================================== A.3 -->
   <hr>
   <h2 id="a3">A.3 Warping the Images</h2>
-  <p>I use <strong>inverse warping</strong>. Forward warping pushes each input pixel to where H sends it, which leaves holes wherever the warp stretches the image. Inverse warping instead loops over the output pixels and asks where each one came from:</p>
+  <p><strong>Inverse warping</strong> is used. Forward warping pushes each input pixel to where H sends it, which leaves holes wherever the warp stretches the image. Inverse warping instead loops over the output pixels and asks where each one came from:</p>
   <ol>
     <li>Send the input's four corners through H. The box around where they land sets the output size, and its top-left corner is the output's offset in the target frame.</li>
     <li>Map every output pixel back into the input with H<sup>−1</sup>, dividing by w as before. This is done for all pixels at once with one matrix multiplication.</li>
     <li>Mark output pixels that map outside the input as empty in an alpha mask. These become the black areas around a warped image.</li>
     <li>Pick a colour at each remaining location, which almost always falls between pixel centres.</li>
   </ol>
-  <p>I treat (0, 0) as the centre of the first pixel. The two interpolation methods differ only in step 4:</p>
+  <p>(0, 0) is set as the centre of the first pixel. The two interpolation methods differ only in step 4:</p>
   <ul>
     <li><strong>Nearest neighbour</strong> rounds the location to the closest pixel centre and copies that pixel.</li>
     <li><strong>Bilinear</strong> blends the four surrounding pixels. For a location 0.7 of the way across and 0.3 of the way down between them, it blends each row with weights 0.3 and 0.7, then blends the two rows with weights 0.7 and 0.3, so the closest pixel always contributes most.</li>
@@ -160,7 +160,7 @@ Path      H left -> centre                  H right -> centre
   <p>Both functions, <code>warpImageNearestNeighbor(im, H)</code> and <code>warpImageBilinear(im, H)</code>, return the warped image, its alpha mask and its offset. They also accept an optional bounding box, which the mosaic step uses to warp every photo into one shared canvas.</p>
 
   <h3 id="flyer">Rectification 1: a flyer on a poster board</h3>
-  <p>The white "Cozy Paint &amp; Tea Night" flyer is printed on US letter paper, so its true shape is an 8.5 × 11 rectangle. I clicked its four corners as the source points and defined the destination by hand as an 8.5 : 11 rectangle anchored at the clicked top-left corner. The rectangle's width is the average of the flyer's top and bottom edge lengths in the photo, about 150 pixels, so the rectified flyer stays about the same size as in the original, and its height is that width × 11 / 8.5.</p>
+  <p>The white "Cozy Paint &amp; Tea Night" flyer is printed on US letter paper, so its true shape is an 8.5 × 11 rectangle. Its four corners were clicked as the source points, and the destination was defined by hand as an 8.5 : 11 rectangle anchored at the clicked top-left corner. The rectangle's width is the average of the flyer's top and bottom edge lengths in the photo, about 150 pixels, so the rectified flyer stays about the same size as in the original, and its height is that width × 11 / 8.5.</p>
   <div class="pair">
     <figure><img src="images/poster_points.jpg" alt="Clicked flyer corners"><figcaption>The four clicked corners of the flyer.</figcaption></figure>
     <figure><img src="images/poster_points_zoom.jpg" alt="Zoomed flyer corners"><figcaption>Close-ups of each click against the paper's corners.</figcaption></figure>
@@ -189,7 +189,7 @@ H =
   </div>
 
   <h3 id="card">Rectification 2: a Pokémon card on a desk</h3>
-  <p>The second target is a Mega Charizard EX card lying flat on my desk, photographed from above at an angle. Pokémon cards are a standard 63 × 88 mm, so the destination is a rectangle with a height-to-width ratio of 88 : 63. The cards have rounded corners, so I clicked where the two straight edges would meet if they continued, rather than on the curve.</p>
+  <p>The second target is a freshly pulled Mega Charizard MUR card lying flat on my desk, photographed from above at an angle. Pokémon cards are a standard 63 × 88 mm, so the destination is a rectangle with a height-to-width ratio of 88 : 63. The cards have rounded corners, so the clicks were placed where the two straight edges would meet if they continued, rather than on the curve.</p>
   <div class="pair">
     <figure><img src="images/card_points.jpg" alt="Clicked card corners"><figcaption>The four clicked corners of the card.</figcaption></figure>
     <figure><img src="images/card_points_zoom.jpg" alt="Zoomed card corners"><figcaption>Close-ups of each click.</figcaption></figure>
@@ -220,7 +220,7 @@ H =
     <tr><td>Card</td><td class="r">866 × 1329</td><td class="r">0.09 s</td><td class="r">0.22 s</td></tr>
   </table></div>
   <p>On average, bilinear took about 3 times as much as nearest neighbour, and in terms of perceived quality, bilinear did not provide that much of a quality increase, though nearest neighbours produces more jagged, blocky edges while bilinear produces smoother image at the cost of slight softness even in text. Text is hard to reproduce simply because its letters are made of thin strokes with sharp edges between dark ink and light paper, and after downscaling each letter is only a few pixels wide. The warp almost never lands exactly on a pixel centre, so nearest neighbour snaps each sample to the closest pixel, which makes some strokes a pixel thicker or thinner than others and turns diagonal edges into steps. Bilinear instead blends the ink with the paper beside it, so every sharp edge becomes a short grey ramp and the letters look slightly blurred.</p>
-  <p>Because of this, I use bilinear interpolation for all of the mosaics.</p>
+  <p>Because of this, bilinear interpolation is used for all of the mosaics.</p>
 
   <!-- ===================================================== A.4 -->
   <hr>
@@ -228,9 +228,9 @@ H =
   <h3>Procedure</h3>
   <ol>
     <li><strong>Reference frame.</strong> The centre photo of each scene is left unwarped. Each side photo is mapped into its coordinates with the homography from its eight correspondences, and the centre photo uses the identity matrix.</li>
-    <li><strong>Canvas.</strong> I send each photo's four corners through its homography and take the smallest box containing all twelve points. That box is the mosaic canvas, and every photo is warped into exactly that box with bilinear interpolation, so all three line up pixel for pixel.</li>
+    <li><strong>Canvas.</strong> Each photo's four corners are sent through its homography, and the smallest box containing all twelve points is taken. That box is the mosaic canvas, and every photo is warped into exactly that box with bilinear interpolation, so all three line up pixel for pixel.</li>
     <li><strong>Feathering.</strong> Each photo gets a weight map that is 1 at its centre and falls linearly to 0 at its edges. The weight map is warped with the same homography as the photo and multiplied by its alpha mask. Every canvas pixel is the weighted average of the photos covering it, so one photo fades into the next instead of ending at a hard edge, and the brightness differences between shots are smoothed out.</li>
-    <li><strong>Two-level blend.</strong> Feathering also averages fine detail, so any small misalignment would show up as doubled edges. To guard against this, I split each warped photo into a low-frequency layer, a Gaussian blur with σ = 4 computed only inside the photo so the black surroundings do not leak in, and a high-frequency layer, which is the photo minus its blur. The low layers are feathered as above, while each pixel takes its high-frequency detail from whichever photo has the largest weight there. This is a two-level version of the Laplacian pyramid blend from Project 2.</li>
+    <li><strong>Two-level blend.</strong> Feathering also averages fine detail, so any small misalignment would show up as doubled edges. To guard against this, each warped photo is split into a low-frequency layer, a Gaussian blur with σ = 4 computed only inside the photo so the black surroundings do not leak in, and a high-frequency layer, which is the photo minus its blur. The low layers are feathered as above, while each pixel takes its high-frequency detail from whichever photo has the largest weight there. This is a two-level version of the Laplacian pyramid blend from Project 2.</li>
   </ol>
   <p>All three mosaics are planar, so photos far from the reference are stretched. The courtyard and path each span a wide angle, so their side photos are stretched to several times their original size at the outer edges, which gives both mosaics a bow-tie shape. A cylindrical projection would handle that width better.</p>
 

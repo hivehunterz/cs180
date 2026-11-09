@@ -72,11 +72,14 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
 
   <h2 id="b3">B.3 Feature Matching</h2>
   <p>Each descriptor is matched to its nearest neighbour (1-NN) in the other photo, and the match is kept only if the ratio of the 1-NN to the 2-NN distance is below 0.6 (Lowe's ratio test). On squared distances, the quantity in Figure 6b of the paper, this is a threshold of 0.36, where correct matches are still common and incorrect ones are rare.</p>
-  <figure><img src="images/yosemite_matches_left.jpg" alt="Yosemite matches"><figcaption>Yosemite left and centre photos: the 146 matches that pass the ratio test, before RANSAC.</figcaption></figure>
+  <figure><img src="images/yosemite_matches_left.jpg" alt="Yosemite matches"><figcaption>Yosemite left and centre photos: the 146 matches that pass the ratio test, before RANSAC. The matches for both pairs are shown again in B.4, coloured by RANSAC.</figcaption></figure>
 
   <h2 id="b4">B.4 RANSAC and Automatic Mosaics</h2>
   <p>4-point RANSAC was implemented from scratch. 4 random matches give an exact homography through <code>computeH</code> from Part A, and the inliers are the matches that it sends within ε = 2 pixels of their partner. After 3,000 iterations, the homography is refit with least squares on the largest inlier set. The mosaics use the Part A canvas and two-level blend, with the centre photo as the reference.</p>
-  <figure><img src="images/yosemite_ransac_left.jpg" alt="Yosemite RANSAC left"><figcaption>Yosemite, left to centre: 130 of the 146 matches are RANSAC inliers (green), and the other 16 are outliers (red).</figcaption></figure>
+  <div class="pair">
+    <figure><img src="images/yosemite_ransac_left.jpg" alt="Yosemite RANSAC left"><figcaption>Yosemite, left to centre: 130 of the 146 matches are RANSAC inliers (green), and the other 16 are outliers (red).</figcaption></figure>
+    <figure><img src="images/yosemite_ransac_right.jpg" alt="Yosemite RANSAC right"><figcaption>Yosemite, right to centre: 168 of the 192 matches are inliers.</figcaption></figure>
+  </div>
   <figure><img src="images/yosemite_mosaic_auto.jpg" alt="Yosemite automatic mosaic"><figcaption>Yosemite mosaic, stitched automatically.</figcaption></figure>
 
   <h3>Hand-clicked and automatic mosaics side by side</h3>

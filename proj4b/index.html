@@ -54,10 +54,10 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
   <h1>Feature Matching for Autostitching</h1>
   <p class="sub">Project 4B · CS180, Fall 2026 · Tan Ee Khai</p>
   <nav class="toc">
-    <a href="#b1">B.1 Corners</a><a href="#b2">B.2 Descriptors</a><a href="#b3">B.3 Matching</a><a href="#b4">B.4 RANSAC</a><a href="#b5">B.5 Rotation invariance</a><a href="#code">Code</a>
+    <a href="#b1">B.1 Corners</a><a href="#b2">B.2 Descriptors</a><a href="#b3">B.3 Matching</a><a href="#b4">B.4 RANSAC</a><a href="#code">Code</a>
   </nav>
 
-  <p class="lead">The hand-clicked correspondences from <a href="../proj4/">Part A</a> are replaced with automatic corner detection, feature matching and RANSAC, following "Multi-Image Matching using Multi-Scale Oriented Patches" by Brown et al. with the simplifications from the project page. The three Part A scenes are stitched automatically and compared with the hand-clicked mosaics. A new set of photos from Yosemite is also stitched, which were too hard to hand-label because of the number of lines and features in the mountains. For the bells and whistles, rotation-invariant descriptors were added.</p>
+  <p class="lead">The hand-clicked correspondences from <a href="../proj4/">Part A</a> are replaced with automatic corner detection, feature matching and RANSAC, following "Multi-Image Matching using Multi-Scale Oriented Patches" by Brown et al. with the simplifications from the project page. The hallway and path from Part A are stitched automatically and compared with the hand-clicked mosaics. A new set of photos from Yosemite is also stitched, which were too hard to hand-label because of the number of lines and features in the mountains.</p>
 
   <p>As in Part A, every photo is downscaled so that its long side is 1000 pixels. The Harris response follows the course's <code>harris.py</code>, and everything else is written with NumPy, reusing the Part A homography solver, bilinear warp and two-level blend.</p>
   <figure><img src="images/yosemite_sources.jpg" alt="Yosemite source photos"><figcaption>My pics from Yosemite over the weekend.</figcaption></figure>
@@ -83,14 +83,9 @@ nav.toc span { margin-right: 10px; font-weight: 600; }
   <figure><img src="images/yosemite_mosaic_auto.jpg" alt="Yosemite automatic mosaic"><figcaption>Yosemite mosaic, stitched automatically.</figcaption></figure>
 
   <h3>Hand-clicked and automatic mosaics side by side</h3>
-  <p>Both versions line up in every scene. When my clicked points are sent through the automatic homographies, they land within about 1 to 3 pixels of their clicked partners.</p>
+  <p>Both versions line up in both scenes. When my clicked points are sent through the automatic homographies, they land within about 1 to 3 pixels of their clicked partners. The courtyard from Part A is not stitched automatically. Its side photos are rotated by about 23 degrees relative to the centre one, so the axis-aligned descriptors match too few corners, and RANSAC finds only 7 and 8 inliers.</p>
   <figure><img src="images/hallway_manual_vs_auto.jpg" alt="Hallway manual vs automatic"><figcaption>Hallway: hand-clicked (left) and automatic (right).</figcaption></figure>
   <figure><img src="images/path_manual_vs_auto.jpg" alt="Path manual vs automatic"><figcaption>Path: hand-clicked (top) and automatic (bottom).</figcaption></figure>
-  <figure><img src="images/courtyard_manual_vs_auto.jpg" alt="Courtyard manual vs automatic"><figcaption>Courtyard: hand-clicked (top) and automatic (bottom), using the rotation-invariant descriptors from B.5.</figcaption></figure>
-
-  <h2 id="b5">B.5 Bells &amp; Whistles: Rotation Invariance</h2>
-  <p>The courtyard photos were taken looking upward while turning, so the side photos are rotated by about 23 degrees relative to the centre one, and with axis-aligned descriptors RANSAC finds only 7 and 8 inliers. Following Section 4 of the paper, each corner is given an orientation θ, the direction of the blurred gradient around it. The 8 × 8 sampling grid is rotated by θ and read with bilinear interpolation, then bias/gain normalised as before. With these oriented descriptors, the courtyard gets 23 and 14 inliers.</p>
-  <figure><img src="images/yosemite_rotation_test.jpg" alt="Rotation test"><figcaption>The Yosemite centre photo matched against a copy rotated by 30 degrees. Axis-aligned descriptors give no matches, while oriented descriptors give 208, of which 206 are correct (green).</figcaption></figure>
 
   <!-- ===================================================== Code -->
   <hr>
